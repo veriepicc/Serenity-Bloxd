@@ -1,6 +1,6 @@
-# DogBeater - Enhanced Client Utility
+# Serenity - Enhanced Client Utility
 
-DogBeater is a client-side enhancement and utility tool designed to augment the experience within a popular online block-building and combat game. It provides various modules to improve gameplay, visual feedback, and overall user interaction.
+Serenity is a client-side enhancement and utility tool designed to augment the experience within a popular online block-building and combat game. It provides various modules to improve gameplay, visual feedback, and overall user interaction.
 
 ## Disclaimer
 
@@ -20,11 +20,11 @@ Users are solely responsible for their actions while using this software and for
 
 1.  Clone this repository:
     ```bash
-    git clone https://github.com/YOUR_USERNAME/DogBeater-Bloxd.git
+    git clone https://github.com/veriepicc/Serenity-Bloxd.git
     ```
 2.  Navigate to the project directory:
     ```bash
-    cd DogBeater-Bloxd
+    cd Serenity-Bloxd
     ```
 3.  Install dependencies:
     ```bash
