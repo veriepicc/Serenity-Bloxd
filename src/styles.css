@@ -1,0 +1,758 @@
+:root {
+  --primary: #5E72EB; /* A nice modern blue */
+  --primary-dark: #4D5DBF;
+  --accent: #E54B4B; /* A contrasting accent color */
+  --background: rgba(20, 22, 28, 0.9);
+  --panel: rgba(30, 33, 41, 0.85);
+  --hover: rgba(255, 255, 255, 0.05);
+  --border: rgba(255, 255, 255, 0.07);
+  --shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+  --text: #EAEAEA;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --radius: 10px;
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Overlay that covers the entire screen with heavy blur */
+.serenity-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(10, 12, 16, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 9998;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.serenity-overlay.visible {
+  opacity: 1;
+}
+
+/* Main container for the UI */
+.serenity-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  display: flex;
+  gap: 0; /* Remove gap for a more integrated look */
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  z-index: 9999;
+  color: var(--text);
+  opacity: 0;
+  transition: var(--transition);
+  max-height: 75vh;
+  overflow: hidden;
+  width: 70%;
+  max-width: 1000px;
+}
+
+.serenity-container.visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Left sidebar with categories */
+.serenity-sidebar {
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  background-color: rgba(25, 28, 36, 0.5); /* Slightly different shade */
+  padding: 15px;
+  border-right: 1px solid var(--border);
+}
+
+.serenity-logo {
+  margin-bottom: 30px;
+  text-align: center;
+  padding: 10px 0;
+}
+
+.serenity-logo h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--text);
+  text-shadow: 0 0 10px var(--primary);
+}
+
+.serenity-logo span {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+}
+
+.serenity-category {
+  padding: 12px 15px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 15px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent;
+}
+
+.serenity-category:hover {
+  background-color: var(--hover);
+  border-color: var(--border);
+}
+
+.serenity-category.active {
+  background-color: var(--primary);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(94, 114, 235, 0.3);
+}
+
+.serenity-category-icon {
+  margin-right: 12px;
+  font-size: 16px;
+  width: 20px; /* Ensure icons align */
+  text-align: center;
+  opacity: 0.9;
+}
+
+.serenity-category-icon i {
+  font-weight: 900; /* Required for Font Awesome solid icons */
+}
+
+/* Right content area with modules */
+.serenity-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.serenity-content::-webkit-scrollbar {
+  width: 5px;
+}
+
+.serenity-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.serenity-content::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 10px;
+}
+
+.serenity-content::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
+}
+
+.serenity-section {
+  margin-bottom: 25px;
+}
+
+.serenity-section-header {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: var(--text);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.serenity-search-bar {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  transition: var(--transition);
+  width: 250px;
+}
+
+.serenity-search-bar:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: rgba(0,0,0,0.3);
+}
+
+.serenity-right-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.serenity-config-btn i {
+  font-weight: 900;
+}
+
+.serenity-config-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  z-index: 10003;
+  width: 480px;
+  animation: fadeIn 0.1s ease-out;
+  display: flex;
+  flex-direction: column;
+}
+
+.serenity-config-popup-header {
+  padding: 12px 15px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+
+.serenity-config-popup-header button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.serenity-config-popup-body {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.serenity-config-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 15px;
+}
+
+.serenity-config-toggle-setting {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.serenity-config-manual-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.serenity-config-manual-actions button {
+  flex-grow: 1;
+  padding: 8px 15px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background-color: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.serenity-config-manual-actions button:hover {
+  background-color: var(--hover);
+}
+
+.serenity-config-popup-body textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.serenity-config-popup-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.serenity-config-popup-actions button {
+  padding: 8px 15px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+/* This targets the Import button */
+.serenity-config-popup-actions button:first-child {
+  background-color: var(--primary);
+  color: #fff;
+}
+
+.serenity-config-popup-actions button:first-child:hover {
+  background-color: var(--primary-dark);
+}
+
+/* This targets the Export button */
+.serenity-config-popup-actions button:last-child {
+  background-color: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.serenity-config-popup-actions button:last-child:hover {
+  background-color: var(--hover);
+}
+
+.serenity-config-popup-footer {
+  padding: 15px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.serenity-config-back-btn {
+  background-color: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 8px 15px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.serenity-config-back-btn:hover {
+  background-color: var(--hover);
+}
+
+.serenity-modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+/* Module cards */
+.serenity-module {
+  background-color: var(--panel);
+  border-radius: var(--radius);
+  padding: 16px;
+  transition: var(--transition);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.serenity-module:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  border-color: var(--primary);
+}
+
+.serenity-module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.serenity-module-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.serenity-module-toggle {
+  position: relative;
+  width: 44px; /* Slightly smaller */
+  height: 22px;
+  cursor: pointer;
+}
+
+.serenity-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.2);
+  transition: var(--transition);
+  border-radius: 22px;
+  border: 1px solid var(--border);
+}
+
+.serenity-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: var(--text-secondary);
+  transition: var(--transition);
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.serenity-module-toggle.enabled .serenity-toggle-slider {
+  background-color: var(--primary);
+  border-color: var(--primary-dark);
+}
+
+.serenity-module-toggle.enabled .serenity-toggle-slider:before {
+  transform: translateX(22px);
+  background-color: #fff;
+}
+
+.serenity-module-description {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* New controls for settings button next to the toggle */
+.serenity-module-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.serenity-module-settings-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 5px;
+  transition: var(--transition);
+  font-size: 14px;
+}
+
+.serenity-module:hover .serenity-module-settings-btn {
+  opacity: 1;
+}
+
+.serenity-module-settings-btn:hover {
+  color: var(--text);
+  background-color: var(--hover);
+}
+
+/* Header for the dedicated settings view */
+.serenity-settings-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: var(--text);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.serenity-back-btn {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.serenity-back-btn:hover {
+  background: var(--hover);
+  border-color: var(--primary);
+}
+
+/* HUD Editor styles */
+.serenity-hud-editor-btn i {
+  font-weight: 900;
+}
+
+.serenity-hud-editor-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(10, 12, 16, 0.8);
+  backdrop-filter: blur(16px);
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.serenity-hud-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+  z-index: -1;
+}
+
+.serenity-hud-done-btn {
+  position: absolute;
+  bottom: 30px;
+  background-color: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 4px 20px rgba(94, 114, 235, 0.4);
+}
+
+.serenity-hud-done-btn:hover {
+  background-color: var(--primary-dark);
+}
+
+/* HUD Settings Popup */
+.serenity-hud-settings-popup {
+  position: fixed;
+  background-color: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  z-index: 10002;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 200px;
+  box-shadow: var(--shadow);
+  animation: fadeIn 0.1s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* New header for the HUD settings popup */
+.serenity-hud-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px;
+  background-color: rgba(0,0,0,0.2);
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.serenity-hud-popup-close-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.serenity-hud-popup-close-btn:hover {
+  color: var(--text);
+}
+
+.serenity-hud-popup-body {
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Compact styles for settings inside the HUD popup */
+.serenity-hud-settings-popup .serenity-setting {
+  padding: 4px 2px;
+  border-bottom: none;
+}
+
+.serenity-hud-settings-popup .serenity-setting-label {
+  font-size: 13px;
+}
+
+.serenity-hud-settings-popup .serenity-setting-description {
+  display: none;
+}
+
+.serenity-module-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.serenity-setting {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.serenity-setting:last-child {
+  border-bottom: none;
+}
+
+.serenity-setting-info {
+  flex: 1;
+}
+
+.serenity-setting-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.serenity-setting-description {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 4px 0 0 0;
+}
+
+.serenity-setting-control {
+  flex-basis: 40%;
+}
+
+/* Generic input styles */
+.serenity-select, .serenity-text-input {
+  width: 100%;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 13px;
+  transition: var(--transition);
+}
+
+.serenity-select:focus, .serenity-text-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: rgba(0,0,0,0.3);
+}
+
+/* Checkbox specific styles */
+.serenity-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  background-color: rgba(0,0,0,0.2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  cursor: pointer;
+  position: relative;
+  transition: var(--transition);
+}
+
+.serenity-checkbox:checked {
+  background-color: var(--primary);
+  border-color: var(--primary-dark);
+}
+
+.serenity-checkbox:checked::before {
+  content: '✓';
+  font-size: 14px;
+  color: #fff;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Slider specific styles */
+.serenity-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 3px;
+  outline: none;
+  transition: opacity .2s;
+}
+
+.serenity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--primary);
+  cursor: pointer;
+  border-radius: 50%;
+  border: 2px solid var(--background);
+}
+
+.serenity-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: var(--primary);
+  cursor: pointer;
+  border-radius: 50%;
+  border: 2px solid var(--background);
+}
+
+/* Color Picker specific styles */
+.serenity-color-picker {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 28px;
+  background-color: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.serenity-color-picker::-webkit-color-swatch {
+  border-radius: 5px;
+  border: none;
+}
+
+.serenity-color-picker::-moz-color-swatch {
+  border-radius: 5px;
+  border: none;
+}
+
+.cps-counter-display {
+  position: fixed;
+  z-index: 9997;
+  user-select: none;
+}
+
+/* Global styles */
+body {
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure the font is loaded */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
