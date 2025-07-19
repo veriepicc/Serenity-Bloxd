@@ -2,8 +2,10 @@
   --primary: #5E72EB; /* A nice modern blue */
   --primary-dark: #4D5DBF;
   --accent: #E54B4B; /* A contrasting accent color */
+  --panel-base: #1e2129; /* Default dark background color */
+  --panel-opacity: 0.85; /* Default opacity */
   --background: rgba(20, 22, 28, 0.9);
-  --panel: rgba(30, 33, 41, 0.85);
+  --panel: rgba(30, 33, 41, var(--panel-opacity));
   --hover: rgba(255, 255, 255, 0.05);
   --border: rgba(255, 255, 255, 0.07);
   --shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
@@ -11,6 +13,14 @@
   --text-secondary: rgba(255, 255, 255, 0.6);
   --radius: 10px;
   --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --notification-success-bg: rgba(63, 154, 86, 0.15);
+  --notification-success-icon: #5cb85c;
+  --notification-warning-bg: rgba(205, 163, 74, 0.15);
+  --notification-warning-icon: #f0ad4e;
+  --notification-error-bg: rgba(201, 79, 79, 0.15);
+  --notification-error-icon: #d9534f;
+  --notification-info-bg: rgba(94, 114, 235, 0.15);
+  --notification-info-icon: var(--primary);
 }
 
 .serenity-hidden {
@@ -58,9 +68,19 @@
   max-width: 1000px;
 }
 
+.serenity-container:not(.settings-view-active) .serenity-content {
+  background-image: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0) 60%);
+  background-size: 150% 150%;
+  animation: fluid-hero 8s ease-in-out infinite;
+}
+
 .serenity-container.visible {
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
+}
+
+.serenity-container.settings-view-active .serenity-sidebar {
+    display: none;
 }
 
 /* Left sidebar with categories */
@@ -74,9 +94,30 @@
 }
 
 .serenity-logo {
-  margin-bottom: 30px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.serenity-logo-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--primary);
+  filter: drop-shadow(0 0 8px var(--primary));
+  transition: transform 0.3s ease;
+}
+
+.serenity-logo-icon:hover {
+  transform: scale(1.1) rotate(10deg);
+}
+
+.serenity-logo-text {
   text-align: center;
-  padding: 10px 0;
 }
 
 .serenity-logo h1 {
@@ -86,6 +127,9 @@
   letter-spacing: 1.5px;
   color: var(--text);
   text-shadow: 0 0 10px var(--primary);
+  background: linear-gradient(to right, var(--primary) 0%, #ffffff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .serenity-logo span {
@@ -113,6 +157,7 @@
 .serenity-category:hover {
   background-color: var(--hover);
   border-color: var(--border);
+  transform: translateX(3px);
 }
 
 .serenity-category.active {
@@ -124,13 +169,25 @@
 .serenity-category-icon {
   margin-right: 12px;
   font-size: 16px;
-  width: 20px; /* Ensure icons align */
+  width: 24px; /* Slightly larger icon width */
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   opacity: 0.9;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  transition: var(--transition);
 }
 
-.serenity-category-icon i {
-  font-weight: 900; /* Required for Font Awesome solid icons */
+.serenity-category:hover .serenity-category-icon {
+  transform: scale(1.1);
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.serenity-category.active .serenity-category-icon {
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Right content area with modules */
@@ -361,12 +418,29 @@
   border: 1px solid var(--border);
   position: relative;
   overflow: hidden;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.serenity-module::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background-color: var(--primary);
+  opacity: 0;
+  transition: var(--transition);
 }
 
 .serenity-module:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
   border-color: var(--primary);
+}
+
+.serenity-module:hover::before {
+  opacity: 1;
 }
 
 .serenity-module-header {
@@ -438,14 +512,20 @@
 }
 
 .serenity-module-settings-btn {
-  background: none;
-  border: none;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
   color: var(--text-secondary);
   cursor: pointer;
   padding: 5px;
   border-radius: 5px;
   transition: var(--transition);
   font-size: 14px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
 }
 
 .serenity-module:hover .serenity-module-settings-btn {
@@ -454,7 +534,8 @@
 
 .serenity-module-settings-btn:hover {
   color: var(--text);
-  background-color: var(--hover);
+  background-color: var(--primary);
+  border-color: var(--primary-dark);
 }
 
 /* Header for the dedicated settings view */
@@ -923,7 +1004,7 @@
 }
 
 .serenity-chat-messages {
-  background-color: var(--chat-bg-color, rgba(30, 33, 41, 0.8));
+  background-color: var(--panel);
   border-radius: 8px;
   padding: 10px;
   display: flex;
@@ -1038,12 +1119,10 @@ body {
   letter-spacing: 0.5px;
   user-select: none;
   border: none;
-  background: var(--key-bg);
+  background: var(--panel);
   transition: var(--key-transition);
   overflow: hidden;
   transform: translateY(0);
-  backdrop-filter: blur(var(--blur-intensity));
-  -webkit-backdrop-filter: blur(var(--blur-intensity));
   box-shadow: var(--key-shadow);
 }
 
@@ -1054,7 +1133,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: var(--key-active-bg);
+  background: var(--primary);
   opacity: 0;
   transition: opacity 0.15s ease;
   z-index: -1;
@@ -1066,8 +1145,6 @@ body {
   box-shadow: var(--key-shadow-pressed), inset 0 0 0 1px rgba(255, 255, 255, 0.3);
   color: white;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(calc(var(--blur-intensity) * 1.2));
-  -webkit-backdrop-filter: blur(calc(var(--blur-intensity) * 1.2));
 }
 
 .keystrokes-key.active::before {
@@ -1093,4 +1170,522 @@ body {
 
 .keystrokes-display.no-animations .keystrokes-key {
   transition: none !important;
+}
+
+/* Notification System */
+.serenity-notification-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10005;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.serenity-notification {
+  display: flex;
+  align-items: center;
+  width: 350px;
+  background: var(--panel);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  color: var(--text);
+  overflow: hidden;
+  position: relative;
+  opacity: 0;
+  padding: 12px;
+  gap: 12px;
+}
+
+.serenity-notification.exiting {
+    pointer-events: none;
+}
+
+.serenity-notification-icon-wrapper {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--notification-info-bg);
+}
+
+.serenity-notification-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--notification-info-icon);
+}
+
+.serenity-notification-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.serenity-notification-content {
+  padding: 0;
+  flex-grow: 1;
+}
+
+.serenity-notification-title {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 2px;
+}
+
+.serenity-notification-message {
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.serenity-notification-message b {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.serenity-notification-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: var(--transition);
+}
+
+.serenity-notification-close:hover {
+  opacity: 1;
+  color: var(--text);
+}
+
+.serenity-notification-timer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background-color: var(--notification-info-icon);
+  opacity: 0.6;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* Notification Types */
+.serenity-notification-success .serenity-notification-icon-wrapper { background-color: var(--notification-success-bg); }
+.serenity-notification-success .serenity-notification-icon { color: var(--notification-success-icon); }
+.serenity-notification-success .serenity-notification-timer { background-color: var(--notification-success-icon); }
+
+.serenity-notification-warning .serenity-notification-icon-wrapper { background-color: var(--notification-warning-bg); }
+.serenity-notification-warning .serenity-notification-icon { color: var(--notification-warning-icon); }
+.serenity-notification-warning .serenity-notification-timer { background-color: var(--notification-warning-icon); }
+
+.serenity-notification-error .serenity-notification-icon-wrapper { background-color: var(--notification-error-bg); }
+.serenity-notification-error .serenity-notification-icon { color: var(--notification-error-icon); }
+.serenity-notification-error .serenity-notification-timer { background-color: var(--notification-error-icon); }
+
+/* Animations */
+@keyframes serenity-notification-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes serenity-notification-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+/* ArrayList Module - v2 */
+.serenity-arraylist-container {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 9995;
+  pointer-events: none;
+  font-weight: 600;
+  line-height: 1.4;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-end;
+}
+
+.serenity-arraylist-item {
+  position: relative;
+  padding: 4px 12px;
+  background-color: var(--panel);
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  padding-right: 18px; /* Make space for border */
+}
+
+.serenity-arraylist-border {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 4px;
+}
+
+.serenity-arraylist-container.with-shadow .serenity-arraylist-item {
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+
+/* New Config Screen Styles */
+.serenity-config-screen {
+    flex-direction: column;
+    width: 60%;
+    max-width: 800px;
+    height: 70vh;
+    max-height: 600px;
+}
+
+.serenity-config-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 25px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    height: 60px;
+}
+
+.serenity-config-title {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.serenity-config-tabs {
+    display: flex;
+    gap: 5px;
+}
+
+.serenity-config-tab {
+    padding: 8px 18px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: var(--transition);
+}
+
+.serenity-config-tab:hover {
+    background: var(--hover);
+    color: var(--text);
+}
+
+.serenity-config-tab.active {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(94, 114, 235, 0.3);
+}
+
+.serenity-config-close-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 22px;
+    cursor: pointer;
+    transition: var(--transition);
+    padding: 10px;
+    border-radius: 50%;
+}
+
+.serenity-config-close-btn:hover {
+    color: var(--text);
+    background-color: var(--hover);
+}
+
+.serenity-config-content {
+    flex-grow: 1;
+    padding: 25px;
+    overflow-y: auto;
+}
+
+.serenity-placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    font-size: 18px;
+    color: var(--text-secondary);
+    user-select: none;
+}
+
+/* Theme Editor Styles */
+.serenity-theme-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.serenity-section-subheader {
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+.serenity-subheader-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.serenity-subheader-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.serenity-theme-control {
+    display: flex;
+    align-items: center;
+}
+
+.serenity-theme-color-picker {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 60px;
+    height: 40px;
+    background-color: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+}
+.serenity-theme-color-picker::-webkit-color-swatch {
+    border-radius: 7px;
+    border: none;
+}
+.serenity-theme-color-picker::-moz-color-swatch {
+    border-radius: 7px;
+    border: none;
+}
+
+.serenity-themes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+}
+
+.serenity-theme-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: var(--panel);
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.serenity-theme-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-color: var(--primary);
+}
+
+.serenity-theme-preview {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* New Config Screen Styles */
+.serenity-config-screen-content {
+    display: flex;
+    gap: 25px;
+    height: 100%;
+}
+
+.serenity-config-tabs-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    border-right: 1px solid var(--border);
+    padding-right: 25px;
+    flex-shrink: 0;
+}
+
+.serenity-config-tab {
+    padding: 10px 20px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: var(--transition);
+}
+
+.serenity-config-tab:hover {
+    background: var(--hover);
+    color: var(--text);
+}
+
+.serenity-config-tab.active {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(94, 114, 235, 0.3);
+}
+
+.serenity-config-tab-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 5px;
+}
+
+.serenity-config-content {
+    flex-grow: 1;
+    padding: 25px;
+    overflow-y: auto;
+    user-select: none;
+}
+
+/* Config Editor Styles */
+.serenity-config-editor {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+}
+
+.serenity-config-column {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.serenity-config-controls-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    border: 1px solid var(--border);
+}
+
+.serenity-config-toggle-setting {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--panel);
+    padding: 15px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+.serenity-config-manual-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.serenity-btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background-color: var(--panel);
+    color: var(--text);
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.serenity-btn:hover {
+    background-color: var(--hover);
+    border-color: var(--primary);
+}
+
+.serenity-btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+}
+
+.serenity-btn-primary:hover {
+    background-color: var(--primary-dark);
+}
+
+.serenity-import-export-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.serenity-import-export textarea {
+    width: 100%;
+    min-height: 100px;
+    resize: vertical;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.serenity-import-export-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* Theme Editor Styles */
+.serenity-theme-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* Fluid Hero Animation */
+@keyframes fluid-hero {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.serenity-theme-panel-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: center;
+}
+
+.serenity-theme-control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.serenity-theme-control-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
 }

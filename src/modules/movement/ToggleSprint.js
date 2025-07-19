@@ -5,19 +5,20 @@ const ToggleSprint = {
     enabled: true,
     sprinting: false,
     element: null,
-    defaultX: 1349,
-    defaultY: 812,
+    defaultX: 1300,
+    defaultY: 800,
 
     settings: [
         { id: "show-text", name: "Show Text", type: "boolean", value: true },
+        { id: "color-mode", name: "Color Mode", type: 'select', options: ['Theme', 'Custom'], value: 'Theme', condition: s => s['show-text'] },
         { id: "hud-text", name: "HUD Text", type: "text", value: "[Sprinting (Toggled)]", condition: s => s['show-text'] },
-        { id: 'bg-color', name: 'Background Color', type: 'color', value: 'rgba(30, 33, 41, 0.85)', condition: s => s['show-text'] },
-        { id: 'text-color', name: 'Text Color', type: 'color', value: 'rgba(234, 234, 234, 0.8)', condition: s => s['show-text'] },
+        { id: 'bg-color', name: 'Background Color', type: 'color', value: 'rgba(30, 33, 41, 0.85)', condition: s => s['show-text'] && s['color-mode'] === 'Custom' },
+        { id: 'text-color', name: 'Text Color', type: 'color', value: 'rgba(234, 234, 234, 0.8)', condition: s => s['show-text'] && s['color-mode'] === 'Custom' },
         { id: 'font-size', name: 'Font Size', type: 'slider', value: 16, min: 8, max: 24, step: 1, condition: s => s['show-text'] },
         { id: 'padding', name: 'Padding', type: 'slider', value: 8, min: 0, max: 20, step: 1, condition: s => s['show-text'] },
         { id: 'border-radius', name: 'Border Radius', type: 'slider', value: 10, min: 0, max: 20, step: 1, condition: s => s['show-text'] },
         { id: 'border-width', name: 'Border Width', type: 'slider', value: 1, min: 0, max: 5, step: 1, condition: s => s['show-text'] },
-        { id: 'border-color', name: 'Border Color', type: 'color', value: 'rgba(255, 255, 255, 0.07)', condition: s => s['show-text'] },
+        { id: 'border-color', name: 'Border Color', type: 'color', value: 'rgba(255, 255, 255, 0.07)', condition: s => s['show-text'] && s['color-mode'] === 'Custom' },
     ],
 
     onEnable() {
@@ -105,12 +106,19 @@ const ToggleSprint = {
         if (!this.element) return;
         const settings = this.settings.reduce((acc, s) => ({ ...acc, [s.id]: s.value }), {});
         
-        this.element.style.backgroundColor = settings['bg-color'];
-        this.element.style.color = settings['text-color'];
+        if (settings['color-mode'] === 'Theme') {
+            this.element.style.backgroundColor = 'var(--panel)';
+            this.element.style.color = 'var(--text)';
+            this.element.style.border = `${settings['border-width']}px solid var(--border)`;
+        } else {
+            this.element.style.backgroundColor = settings['bg-color'];
+            this.element.style.color = settings['text-color'];
+            this.element.style.border = `${settings['border-width']}px solid ${settings['border-color']}`;
+        }
+
         this.element.style.fontSize = `${settings['font-size']}px`;
         this.element.style.padding = `${settings['padding']}px`;
         this.element.style.borderRadius = `${settings['border-radius']}px`;
-        this.element.style.border = `${settings['border-width']}px solid ${settings['border-color']}`;
         this.element.style.position = 'absolute';
         this.element.style.userSelect = 'none';
         this.element.style.pointerEvents = 'none';

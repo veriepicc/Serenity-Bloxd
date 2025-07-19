@@ -11,8 +11,13 @@ const ClickGUI = {
   activeHUDSettingsPopup: null,
   searchQuery: '',
   isGuiOpen: false,
+  isCleaningUp: false,
+  activeConfigTab: 'Themes',
+  activeView: 'modules',
 
   onEnable(manager) {
+    if (this.isCleaningUp || this.element) return;
+
     this.isGuiOpen = true; 
     if (document.pointerLockElement) {
       document.exitPointerLock();
@@ -47,7 +52,8 @@ const ClickGUI = {
   },
 
   cleanup() {
-    if (this.overlay) {
+    if (this.overlay && !this.isCleaningUp) {
+      this.isCleaningUp = true;
       this.overlay.classList.remove('visible');
       this.element.classList.remove('visible');
       
@@ -56,6 +62,7 @@ const ClickGUI = {
         if (this.element) document.body.removeChild(this.element);
         this.overlay = null;
         this.element = null;
+        this.isCleaningUp = false;
 
         const fontAwesomeLink = document.getElementById('font-awesome-link');
         if (fontAwesomeLink) {
@@ -89,19 +96,27 @@ const ClickGUI = {
     const logo = document.createElement('div');
     logo.className = 'serenity-logo';
     logo.innerHTML = `
-      <h1>Serenity</h1>
-      <span>CLIENT v1.0</span>
+      <div class="serenity-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="currentColor"/>
+          <path d="M2 17L12 22L22 17V7L12 12L2 7V17Z" fill="currentColor" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="serenity-logo-text">
+        <h1>Serenity</h1>
+        <span>CLIENT v1.0</span>
+      </div>
     `;
     sidebar.appendChild(logo);
     
     const categories = manager.categories;
     
     const categoryIcons = {
-      'Visual': '<i class="fas fa-eye"></i>',
-      'Utility': '<i class="fas fa-cog"></i>',
-      'Combat': '<i class="fas fa-crosshairs"></i>',
-      'Player': '<i class="fas fa-user"></i>',
-      'Movement': '<i class="fas fa-running"></i>',
+      'Visual': '<i class="fas fa-palette"></i>',
+      'Utility': '<i class="fas fa-tools"></i>',
+      'Combat': '<i class="fas fa-fist-raised"></i>',
+      'Player': '<i class="fas fa-user-astronaut"></i>',
+      'Movement': '<i class="fas fa-wind"></i>',
     };
 
     categories.forEach(category => {
@@ -136,7 +151,7 @@ const ClickGUI = {
   
     const hudEditorBtn = document.createElement('div');
     hudEditorBtn.className = 'serenity-category serenity-hud-editor-btn';
-    hudEditorBtn.innerHTML = `<i class="fas fa-edit"></i> HUD Editor`;
+    hudEditorBtn.innerHTML = `<span class="serenity-category-icon"><i class="fas fa-layer-group"></i></span> HUD Editor`;
     hudEditorBtn.addEventListener('click', () => {
       this.isEditingHUD = true;
       this.renderHUDeditor(manager);
@@ -145,10 +160,10 @@ const ClickGUI = {
 
     const configBtn = document.createElement('div');
     configBtn.className = 'serenity-category serenity-config-btn';
-    configBtn.innerHTML = `<i class="fas fa-cogs"></i> Configuration`;
+    configBtn.innerHTML = `<span class="serenity-category-icon"><i class="fas fa-cogs"></i></span> Settings`;
     configBtn.addEventListener('click', () => {
-      this.element.style.display = 'none';
-      this.showConfigPopup(manager);
+      this.activeView = 'settings';
+      this.updateContent(manager);
     });
     sidebar.appendChild(configBtn);
     
@@ -170,7 +185,7 @@ const ClickGUI = {
         this.overlay.style.zIndex = '9998';
     }
     this.element.style.display = 'flex';
-    this.element.style.pointerEvents = 'auto';
+    this.style.pointerEvents = 'auto';
 
     manager.list().forEach(mod => {
       if (mod.enabled && mod.element) {
@@ -209,13 +224,13 @@ const ClickGUI = {
     doneBtn.className = 'serenity-hud-done-btn';
     doneBtn.textContent = 'Done';
     doneBtn.addEventListener('click', () => {
-      manager.disable('ClickGUI');
+      this.exitHUDeditor(manager);
     });
     editorOverlay.appendChild(doneBtn);
   },
 
   makeElementDraggable(element, module, manager) {
-    if (!element) return;
+    if (!element || module.name === 'ClickGUI') return;
     let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
     
     const dragMouseDown = (e) => {
@@ -369,156 +384,350 @@ const ClickGUI = {
     const content = this.element.querySelector('.serenity-content');
     content.innerHTML = '';
 
+    if (this.activeView === 'settings') {
+      this.element.classList.add('settings-view-active');
+    } else {
+      this.element.classList.remove('settings-view-active');
+    }
+
     if (this.activeSettingsModule) {
       this.populateSettingsContent(content, manager);
+    } else if (this.activeView === 'settings') {
+      this.renderSettingsScreen(content, manager);
     } else {
       this.populateModulesContent(content, manager);
     }
   },
 
-  showConfigPopup(manager) {
-    this.closeConfigPopup(); 
-
-    const popup = document.createElement('div');
-    popup.className = 'serenity-config-popup';
-
+  renderSettingsScreen(content, manager) {
     const header = document.createElement('div');
-    header.className = 'serenity-config-popup-header';
-    header.textContent = 'Configuration';
-    popup.appendChild(header);
+    header.className = 'serenity-settings-header';
     
-    const body = document.createElement('div');
-    body.className = 'serenity-config-popup-body';
+    const backBtn = document.createElement('button');
+    backBtn.className = 'serenity-back-btn';
+    backBtn.innerHTML = '<i class="fas fa-chevron-left"></i> Back';
+    backBtn.addEventListener('click', () => {
+        this.activeView = 'modules';
+        this.activeSettingsModule = null;
+        this.updateContent(manager);
+    });
+    
+    const title = document.createElement('span');
+    title.textContent = 'Settings';
+
+    header.appendChild(backBtn);
+    header.appendChild(title);
+    content.appendChild(header);
 
     const settingsContainer = document.createElement('div');
-    settingsContainer.className = 'serenity-config-settings';
+    settingsContainer.className = 'serenity-config-screen-content';
 
-    // Auto Save Toggle
+    const tabs = document.createElement('div');
+    tabs.className = 'serenity-config-tabs-vertical';
+    tabs.innerHTML = `
+        <button class="serenity-config-tab active" data-tab="Themes">Themes</button>
+        <button class="serenity-config-tab" data-tab="Config">Config</button>
+        <button class="serenity-config-tab" data-tab="Scripting">Scripting</button>
+    `;
+    settingsContainer.appendChild(tabs);
+    
+    const tabContent = document.createElement('div');
+    tabContent.className = 'serenity-config-tab-content';
+    settingsContainer.appendChild(tabContent);
+
+    content.appendChild(settingsContainer);
+
+    tabs.querySelectorAll('.serenity-config-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.querySelectorAll('.serenity-config-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            this.activeConfigTab = tab.dataset.tab;
+            this.renderConfigContent(manager);
+        });
+    });
+
+    this.renderConfigContent(manager);
+  },
+
+  renderConfigContent(manager) {
+    const content = this.element.querySelector('.serenity-config-tab-content');
+    if (!content) return;
+    content.innerHTML = '';
+
+    switch (this.activeConfigTab) {
+        case 'Themes':
+            this.renderThemesContent(content, manager);
+            break;
+        case 'Config':
+            this.renderConfigSubContent(content, manager);
+            break;
+        case 'Scripting':
+            this.renderScriptingContent(content, manager);
+            break;
+    }
+  },
+
+  renderThemesContent(content, manager) {
+    const themeContainer = document.createElement('div');
+    themeContainer.className = 'serenity-theme-editor';
+
+    // -- Section: Accent Color --
+    const accentHeader = this.createSectionHeader('Accent Color', 'Sets the main color for UI elements.');
+    themeContainer.appendChild(accentHeader);
+
+    const accentControl = document.createElement('div');
+    accentControl.className = 'serenity-theme-control';
+    const colorPicker = document.createElement('input');
+    colorPicker.type = 'color';
+    colorPicker.className = 'serenity-theme-color-picker';
+    colorPicker.value = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+    
+    colorPicker.addEventListener('input', (e) => {
+        const newColor = e.target.value;
+        document.documentElement.style.setProperty('--primary', newColor);
+        // You might need a more robust way to handle the darker shade
+        document.documentElement.style.setProperty('--primary-dark', this.shadeColor(newColor, -20));
+        manager.saveConfiguration();
+    });
+    accentControl.appendChild(colorPicker);
+    themeContainer.appendChild(accentControl);
+
+    // -- Section: Panel Style --
+    const panelHeader = this.createSectionHeader('Panel Style', 'Customize the look of UI backgrounds.');
+    themeContainer.appendChild(panelHeader);
+
+    const panelControls = document.createElement('div');
+    panelControls.className = 'serenity-theme-panel-controls';
+
+    // Panel Color
+    const panelColorControl = document.createElement('div');
+    panelColorControl.className = 'serenity-theme-control-group';
+    panelColorControl.innerHTML = `<label>Panel Color</label>`;
+    const panelColorPicker = document.createElement('input');
+    panelColorPicker.type = 'color';
+    panelColorPicker.className = 'serenity-theme-color-picker';
+    const initialPanelColor = getComputedStyle(document.documentElement).getPropertyValue('--panel-base').trim();
+    panelColorPicker.value = initialPanelColor;
+
+    panelColorPicker.addEventListener('input', (e) => {
+        document.documentElement.style.setProperty('--panel-base', e.target.value);
+        manager.saveConfiguration();
+    });
+    panelColorControl.appendChild(panelColorPicker);
+    panelControls.appendChild(panelColorControl);
+
+    // Panel Opacity
+    const panelOpacityControl = document.createElement('div');
+    panelOpacityControl.className = 'serenity-theme-control-group';
+    panelOpacityControl.innerHTML = `<label>Panel Opacity</label>`;
+    const panelOpacitySlider = document.createElement('input');
+    panelOpacitySlider.type = 'range';
+    panelOpacitySlider.className = 'serenity-slider';
+    panelOpacitySlider.min = 0;
+    panelOpacitySlider.max = 1;
+    panelOpacitySlider.step = 0.01;
+    const initialOpacity = getComputedStyle(document.documentElement).getPropertyValue('--panel-opacity').trim();
+    panelOpacitySlider.value = initialOpacity;
+
+    panelOpacitySlider.addEventListener('input', (e) => {
+        document.documentElement.style.setProperty('--panel-opacity', e.target.value);
+        manager.saveConfiguration();
+    });
+    panelOpacityControl.appendChild(panelOpacitySlider);
+    panelControls.appendChild(panelOpacityControl);
+
+    themeContainer.appendChild(panelControls);
+
+    // -- Section: Pre-made Themes --
+    const themesHeader = this.createSectionHeader('Themes', 'Select from a pre-made color scheme.');
+    themeContainer.appendChild(themesHeader);
+
+    const themesGrid = document.createElement('div');
+    themesGrid.className = 'serenity-themes-grid';
+    
+    const themes = [
+        { name: 'Serenity', color: '#5E72EB' },
+        { name: 'Sunset', color: '#E54B4B' },
+        { name: 'Emerald', color: '#3f9a56' },
+        { name: 'Goldenrod', color: '#cda34a' },
+        { name: 'Amethyst', color: '#9b59b6' },
+    ];
+
+    themes.forEach(theme => {
+        const themeCard = document.createElement('div');
+        themeCard.className = 'serenity-theme-card';
+        themeCard.innerHTML = `<div class="serenity-theme-preview" style="background-color: ${theme.color};"></div><span>${theme.name}</span>`;
+        themeCard.addEventListener('click', () => {
+            document.documentElement.style.setProperty('--primary', theme.color);
+            document.documentElement.style.setProperty('--primary-dark', this.shadeColor(theme.color, -20));
+            colorPicker.value = theme.color;
+            manager.saveConfiguration();
+        });
+        themesGrid.appendChild(themeCard);
+    });
+
+    themeContainer.appendChild(themesGrid);
+    content.appendChild(themeContainer);
+  },
+
+  createSectionHeader(title, subtitle) {
+      const header = document.createElement('div');
+      header.className = 'serenity-section-subheader';
+      header.innerHTML = `
+        <div class="serenity-subheader-title">${title}</div>
+        <div class="serenity-subheader-subtitle">${subtitle}</div>
+      `;
+      return header;
+  },
+    
+  renderConfigSubContent(content, manager) {
+    const configContainer = document.createElement('div');
+    configContainer.className = 'serenity-config-editor';
+
+    // --- LEFT COLUMN ---
+    const leftColumn = document.createElement('div');
+    leftColumn.className = 'serenity-config-column';
+
+    // -- Section: General --
+    const generalHeader = this.createSectionHeader('General', 'Manage how your configuration is handled.');
+    leftColumn.appendChild(generalHeader);
+
+    const settingsGrid = document.createElement('div');
+    settingsGrid.className = 'serenity-config-controls-grid';
+    
     const autoSaveSetting = this.createToggleSetting('Auto Save', 'Automatically save changes.', manager.autoSave, (value) => {
       manager.autoSave = value;
+      manager.forceSaveConfiguration();
     });
-    settingsContainer.appendChild(autoSaveSetting);
+    settingsGrid.appendChild(autoSaveSetting);
 
-    // Auto Load Toggle
-    const autoLoadSetting = this.createToggleSetting('Auto Load', 'Automatically load config on startup.', manager.autoLoad, (value) => {
+    const autoLoadSetting = this.createToggleSetting('Auto Load', 'Load config on startup.', manager.autoLoad, (value) => {
       manager.autoLoad = value;
+      manager.forceSaveConfiguration();
     });
-    settingsContainer.appendChild(autoLoadSetting);
+    settingsGrid.appendChild(autoLoadSetting);
+    leftColumn.appendChild(settingsGrid);
     
-    body.appendChild(settingsContainer);
+    // -- Section: Manual Control --
+    const manualHeader = this.createSectionHeader('Manual Control', 'Manually save or load the current config.');
+    leftColumn.appendChild(manualHeader);
 
-    const manualActions = document.createElement('div');
-    manualActions.className = 'serenity-config-manual-actions';
+    const manualButtons = document.createElement('div');
+    manualButtons.className = 'serenity-config-manual-buttons';
 
     const saveBtn = document.createElement('button');
-    saveBtn.textContent = 'Save';
+    saveBtn.className = 'serenity-btn';
+    saveBtn.textContent = 'Force Save';
     saveBtn.onclick = () => {
       manager.forceSaveConfiguration();
       saveBtn.textContent = 'Saved!';
-      setTimeout(() => { saveBtn.textContent = 'Save'; }, 2000);
+      setTimeout(() => { saveBtn.textContent = 'Force Save'; }, 2000);
     };
-    manualActions.appendChild(saveBtn);
+    manualButtons.appendChild(saveBtn);
     
     const loadBtn = document.createElement('button');
-    loadBtn.textContent = 'Load';
-    loadBtn.onclick = () => {
-      manager.loadConfiguration();
-      this.closeConfigPopup();
-      this.updateContent(manager);
-      this.element.style.display = 'flex';
-    };
-    manualActions.appendChild(loadBtn);
-    body.appendChild(manualActions);
+    loadBtn.className = 'serenity-btn';
+    loadBtn.textContent = 'Force Load';
+    loadBtn.onclick = () => manager.loadConfiguration();
+    manualButtons.appendChild(loadBtn);
+    leftColumn.appendChild(manualButtons);
+    
+    configContainer.appendChild(leftColumn);
 
-    const textarea = document.createElement('textarea');
-    textarea.placeholder = 'Paste config here...';
-    body.appendChild(textarea);
-    popup.appendChild(body);
+    // --- RIGHT COLUMN ---
+    const rightColumn = document.createElement('div');
+    rightColumn.className = 'serenity-config-column';
+
+    const importExportHeader = this.createSectionHeader('Import / Export', 'Share your configuration with others.');
+    rightColumn.appendChild(importExportHeader);
+
+    const importExportContainer = document.createElement('div');
+    importExportContainer.className = 'serenity-import-export-buttons';
     
     const importBtn = document.createElement('button');
-    importBtn.textContent = 'Import';
+    importBtn.className = 'serenity-btn serenity-btn-primary';
+    importBtn.innerHTML = `<i class="fas fa-upload"></i> Import from File`;
     importBtn.onclick = () => {
-      try {
-        manager.importConfiguration(textarea.value);
-        this.closeConfigPopup();
-        this.updateContent(manager);
-        this.element.style.display = 'flex';
-      } catch (error) {
-        console.error("Failed to import configuration:", error);
-        alert("Invalid configuration format!");
-      }
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                manager.importConfiguration(event.target.result);
+                alert('Configuration imported successfully!');
+            } catch (err) {
+                alert('Failed to import configuration. The file may be corrupt or improperly formatted.');
+            }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
     };
     
     const exportBtn = document.createElement('button');
-    exportBtn.textContent = 'Export';
+    exportBtn.className = 'serenity-btn';
+    exportBtn.innerHTML = `<i class="fas fa-download"></i> Export to File`;
     exportBtn.onclick = () => {
-      const configStr = manager.exportConfiguration();
-      navigator.clipboard.writeText(configStr);
-      exportBtn.textContent = 'Copied!';
-      setTimeout(() => { exportBtn.textContent = 'Export'; }, 2000);
+      const config = manager.exportConfiguration();
+      const configStr = JSON.stringify(config, null, 2);
+
+      // Copy to clipboard
+      navigator.clipboard.writeText(configStr).then(() => {
+        this.notifications.show({
+            title: 'Config Exported',
+            message: 'Configuration copied to clipboard.',
+            type: 'success'
+        });
+      });
+
+      // Download as file
+      const blob = new Blob([configStr], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'serenity-config.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     };
 
-    const backBtn = document.createElement('button');
-    backBtn.className = 'serenity-config-back-btn';
-    backBtn.textContent = 'Back';
-    backBtn.onclick = () => {
-      this.closeConfigPopup();
-      this.element.style.display = 'flex';
-    };
+    importExportContainer.appendChild(importBtn);
+    importExportContainer.appendChild(exportBtn);
 
-    const footer = document.createElement('div');
-    footer.className = 'serenity-config-popup-footer';
-    
-    const rightActions = document.createElement('div');
-    rightActions.className = 'serenity-config-popup-actions';
-    rightActions.appendChild(importBtn);
-    rightActions.appendChild(exportBtn);
+    rightColumn.appendChild(importExportContainer);
 
-    footer.appendChild(backBtn);
-    footer.appendChild(rightActions);
-    
-    popup.appendChild(footer);
-
-    document.body.appendChild(popup);
+    configContainer.appendChild(rightColumn);
+    content.appendChild(configContainer);
   },
 
-  createToggleSetting(name, description, initialValue, onChange) {
-    const settingWrapper = document.createElement('div');
-    settingWrapper.className = 'serenity-config-toggle-setting';
-
-    const infoContainer = document.createElement('div');
-    infoContainer.className = 'serenity-setting-info';
-    const label = document.createElement('label');
-    label.className = 'serenity-setting-label';
-    label.textContent = name;
-    const desc = document.createElement('p');
-    desc.className = 'serenity-setting-description';
-    desc.textContent = description;
-    infoContainer.appendChild(label);
-    infoContainer.appendChild(desc);
-
-    const controlContainer = document.createElement('div');
-    controlContainer.className = 'serenity-setting-control';
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.checked = initialValue;
-    checkbox.className = 'serenity-checkbox';
-    checkbox.addEventListener('change', (e) => {
-      onChange(e.target.checked);
-    });
-    controlContainer.appendChild(checkbox);
-    
-    settingWrapper.appendChild(infoContainer);
-    settingWrapper.appendChild(controlContainer);
-
-    return settingWrapper;
+  renderScriptingContent(content, manager) {
+    // Placeholder for Scripting
+    content.innerHTML = `<div class="serenity-placeholder">Scripting coming soon...</div>`;
   },
 
-  closeConfigPopup() {
-    const existingPopup = document.querySelector('.serenity-config-popup');
-    if (existingPopup) {
-      document.body.removeChild(existingPopup);
-    }
+  shadeColor(color, percent) {
+    let R = parseInt(color.substring(1,3),16);
+    let G = parseInt(color.substring(3,5),16);
+    let B = parseInt(color.substring(5,7),16);
+
+    R = parseInt(R * (100 + percent) / 100);
+    G = parseInt(G * (100 + percent) / 100);
+    B = parseInt(B * (100 + percent) / 100);
+
+    R = (R<255)?R:255;  
+    G = (G<255)?G:255;  
+    B = (B<255)?B:255;  
+
+    const RR = ((R.toString(16).length==1)?"0"+R.toString(16):R.toString(16));
+    const GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16));
+    const BB = ((B.toString(16).length==1)?"0"+B.toString(16):B.toString(16));
+
+    return "#"+RR+GG+BB;
   },
 
   populateModulesContent(content, manager) {
@@ -584,7 +793,7 @@ const ClickGUI = {
     if (mod.settings.length > 0) {
       const settingsBtn = document.createElement('button');
       settingsBtn.className = 'serenity-module-settings-btn';
-      settingsBtn.innerHTML = '<i class="fas fa-cog"></i>';
+      settingsBtn.innerHTML = '<i class="fas fa-sliders-h"></i>';
       settingsBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         this.activeSettingsModule = mod;
@@ -848,7 +1057,39 @@ const ClickGUI = {
     const alpha = parts.length >= 4 ? parseFloat(parts[3]) : 1;
     
     return { hex: `#${r}${g}${b}`, alpha };
-  }
+  },
+
+  createToggleSetting(name, description, initialValue, onChange) {
+    const settingWrapper = document.createElement('div');
+    settingWrapper.className = 'serenity-config-toggle-setting';
+
+    const infoContainer = document.createElement('div');
+    infoContainer.className = 'serenity-setting-info';
+    const label = document.createElement('label');
+    label.className = 'serenity-setting-label';
+    label.textContent = name;
+    const desc = document.createElement('p');
+    desc.className = 'serenity-setting-description';
+    desc.textContent = description;
+    infoContainer.appendChild(label);
+    infoContainer.appendChild(desc);
+
+    const controlContainer = document.createElement('div');
+    controlContainer.className = 'serenity-setting-control';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = initialValue;
+    checkbox.className = 'serenity-checkbox';
+    checkbox.addEventListener('change', (e) => {
+      onChange(e.target.checked);
+    });
+    controlContainer.appendChild(checkbox);
+    
+    settingWrapper.appendChild(infoContainer);
+    settingWrapper.appendChild(controlContainer);
+
+    return settingWrapper;
+  },
 };
 
 export default ClickGUI;

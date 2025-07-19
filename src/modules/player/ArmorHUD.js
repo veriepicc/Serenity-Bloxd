@@ -7,13 +7,14 @@ const ArmorHUD = {
     defaultX: 1442,
     defaultY: 468,
     settings: [
+      { id: 'color-mode', name: 'Color Mode', type: 'select', options: ['Theme', 'Custom'], value: 'Theme' },
       { id: 'show-selected', name: 'Show Selected Item', type: 'boolean', value: true },
       { id: 'display-style', name: 'Display Style', type: 'select', options: ['Horizontal', 'Vertical'], value: 'Vertical' },
-      { id: 'bg-color', name: 'Background Color', type: 'color', value: 'rgba(30, 33, 41, 0.85)' },
+      { id: 'bg-color', name: 'Background Color', type: 'color', value: 'rgba(30, 33, 41, 0.85)', condition: s => s['color-mode'] === 'Custom' },
       { id: 'padding', name: 'Padding', type: 'slider', value: 4, min: 0, max: 20, step: 1 },
       { id: 'border-radius', name: 'Border Radius', type: 'slider', value: 20, min: 0, max: 20, step: 1 },
       { id: 'border-width', name: 'Border Width', type: 'slider', value: 2, min: 0, max: 5, step: 1 },
-      { id: 'border-color', name: 'Border Color', type: 'color', value: 'rgba(255, 255, 255, 0.07)' },
+      { id: 'border-color', name: 'Border Color', type: 'color', value: 'rgba(255, 255, 255, 0.07)', condition: s => s['color-mode'] === 'Custom' },
       { id: 'item-size', name: 'Item Size', type: 'slider', value: 64, min: 16, max: 64, step: 1 },
       { id: 'item-spacing', name: 'Item Spacing', type: 'slider', value: 0, min: 0, max: 20, step: 1 },
     ],
@@ -198,10 +199,16 @@ const ArmorHUD = {
       if (!this.element) return;
       const settings = this.settings.reduce((acc, s) => ({ ...acc, [s.id]: s.value }), {});
       
-      this.element.style.backgroundColor = settings['bg-color'];
+      if (settings['color-mode'] === 'Theme') {
+        this.element.style.backgroundColor = 'var(--panel)';
+        this.element.style.border = `${settings['border-width']}px solid var(--border)`;
+      } else {
+        this.element.style.backgroundColor = settings['bg-color'];
+        this.element.style.border = `${settings['border-width']}px solid ${settings['border-color']}`;
+      }
+      
       this.element.style.padding = `${settings['padding']}px`;
       this.element.style.borderRadius = `${settings['border-radius']}px`;
-      this.element.style.border = `${settings['border-width']}px solid ${settings['border-color']}`;
       this.element.style.display = 'flex';
       this.element.style.flexDirection = settings['display-style'] === 'Horizontal' ? 'row' : 'column';
       this.element.style.gap = `${settings['item-spacing']}px`;

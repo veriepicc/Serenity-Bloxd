@@ -6,13 +6,14 @@ const CPSCounter = {
   defaultX: 724,
   defaultY: 726,
   settings: [
-    { id: 'bg-color', name: 'Background Color', type: 'color', value: 'rgba(30, 33, 41, 0.85)' },
-    { id: 'text-color', name: 'Text Color', type: 'color', value: '#EAEAEA' },
+    { id: 'color-mode', name: 'Color Mode', type: 'select', options: ['Theme', 'Custom'], value: 'Theme' },
+    { id: 'bg-color', name: 'Background Color', type: 'color', value: 'rgba(30, 33, 41, 0.85)', condition: s => s['color-mode'] === 'Custom' },
+    { id: 'text-color', name: 'Text Color', type: 'color', value: '#EAEAEA', condition: s => s['color-mode'] === 'Custom' },
     { id: 'font-size', name: 'Font Size', type: 'slider', value: 14, min: 8, max: 24, step: 1 },
     { id: 'padding', name: 'Padding', type: 'slider', value: 8, min: 0, max: 20, step: 1 },
     { id: 'border-radius', name: 'Border Radius', type: 'slider', value: 10, min: 0, max: 20, step: 1 },
     { id: 'border-width', name: 'Border Width', type: 'slider', value: 1, min: 0, max: 5, step: 1 },
-    { id: 'border-color', name: 'Border Color', type: 'color', value: 'rgba(255, 255, 255, 0.07)' },
+    { id: 'border-color', name: 'Border Color', type: 'color', value: 'rgba(255, 255, 255, 0.07)', condition: s => s['color-mode'] === 'Custom' },
     { id: 'show-label', name: 'Show Label', type: 'boolean', value: true },
     { id: 'show-lmb', name: 'Show LMB', type: 'boolean', value: true },
     { id: 'show-rmb', name: 'Show RMB', type: 'boolean', value: true },
@@ -109,12 +110,19 @@ const CPSCounter = {
     if (!this.element) return;
     const settings = this.settings.reduce((acc, s) => ({ ...acc, [s.id]: s.value }), {});
     
-    this.element.style.backgroundColor = settings['bg-color'];
-    this.element.style.color = settings['text-color'];
+    if (settings['color-mode'] === 'Theme') {
+        this.element.style.backgroundColor = 'var(--panel)';
+        this.element.style.color = 'var(--text)';
+        this.element.style.border = `${settings['border-width']}px solid var(--border)`;
+    } else {
+        this.element.style.backgroundColor = settings['bg-color'];
+        this.element.style.color = settings['text-color'];
+        this.element.style.border = `${settings['border-width']}px solid ${settings['border-color']}`;
+    }
+    
     this.element.style.fontSize = `${settings['font-size']}px`;
     this.element.style.padding = `${settings['padding']}px`;
     this.element.style.borderRadius = `${settings['border-radius']}px`;
-    this.element.style.border = `${settings['border-width']}px solid ${settings['border-color']}`;
     this.element.style.position = 'absolute';
     this.element.style.userSelect = 'none';
     this.element.style.zIndex = 9997;

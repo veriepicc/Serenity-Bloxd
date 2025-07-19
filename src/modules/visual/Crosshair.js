@@ -18,12 +18,13 @@ const Crosshair = {
             value: 'Cross', 
             options: ['Cross', 'Plus', 'Dot', 'Circle', 'T-Shape', 'Arrow', 'Custom Image'] 
         },
+        { id: 'color-mode', name: 'Color Mode', type: 'select', options: ['Theme', 'Custom'], value: 'Theme', condition: (settings) => settings['mode'] !== 'Custom Image' },
         { id: 'image-url', name: 'Image URL', type: 'text', value: 'https://i.imgur.com/M8M4G3k.png', condition: (settings) => settings['mode'] === 'Custom Image' },
         { id: 'size', name: 'Size', type: 'slider', value: 12, min: 1, max: 100, step: 1 },
-        { id: 'color', name: 'Color', type: 'color', value: '#FFFFFF', condition: (settings) => settings['mode'] !== 'Custom Image' },
+        { id: 'color', name: 'Color', type: 'color', value: '#FFFFFF', condition: (settings) => settings['mode'] !== 'Custom Image' && settings['color-mode'] === 'Custom' },
         { id: 'thickness', name: 'Thickness', type: 'slider', value: 2, min: 1, max: 20, step: 1, condition: (settings) => ['Cross', 'Plus', 'Circle', 'T-Shape'].includes(settings['mode']) },
         { id: 'outline', name: 'Outline', type: 'boolean', value: true, condition: (settings) => settings['mode'] !== 'Custom Image' },
-        { id: 'outline-color', name: 'Outline Color', type: 'color', value: '#000000', condition: (settings) => settings['outline'] && settings['mode'] !== 'Custom Image' },
+        { id: 'outline-color', name: 'Outline Color', type: 'color', value: '#000000', condition: (settings) => settings['outline'] && settings['mode'] !== 'Custom Image' && settings['color-mode'] === 'Custom' },
     ],
 
     onEnable() {
@@ -102,7 +103,12 @@ const Crosshair = {
         this.element.innerHTML = '';
         
         const settings = this.settings.reduce((acc, s) => ({ ...acc, [s.id]: s.value }), {});
-        const { mode, size, color, thickness, outline, 'outline-color': outlineColor, 'image-url': imageUrl } = settings;
+        let { mode, size, color, thickness, outline, 'outline-color': outlineColor, 'image-url': imageUrl, 'color-mode': colorMode } = settings;
+
+        if (colorMode === 'Theme' && mode !== 'Custom Image') {
+            color = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+            outlineColor = '#000000'; // Default outline for theme
+        }
 
         const outlineStyle = outline ? `0px 0px 2px ${outlineColor}, 0px 0px 2px ${outlineColor}, 0px 0px 2px ${outlineColor}, 0px 0px 2px ${outlineColor}` : 'none';
 

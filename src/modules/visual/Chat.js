@@ -15,7 +15,6 @@ const Chat = {
 
     settings: [
         { id: 'hide-game-chat', name: 'Hide Game Chat', type: 'boolean', value: true, description: 'Hides the original in-game chat UI.' },
-        { id: 'bg-color', name: 'Background Color', type: 'color', value: '#00ff4c' },
         { id: 'font-size', name: 'Font Size', type: 'slider', value: 14, min: 10, max: 24, step: 1 },
         { id: 'max-messages', name: 'Max Messages', type: 'slider', value: 7, min: 5, max: 25, step: 1 },
         { id: 'show-timestamps', name: 'Show Timestamps', type: 'boolean', value: false },
@@ -190,7 +189,6 @@ const Chat = {
     applyStyles() {
         if (!this.element) return;
         const settings = this.settings.reduce((acc, s) => ({ ...acc, [s.id]: s.value }), {});
-        this.element.style.setProperty('--chat-bg-color', settings['bg-color']);
         this.element.style.setProperty('--chat-font-size', `${settings['font-size']}px`);
     }
 };

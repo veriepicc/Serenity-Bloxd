@@ -11,6 +11,9 @@ import FPSBooster from './modules/utility/FPSBooster';
 import AdBlocker from './modules/utility/AdBlocker';
 import Configuration from './Configuration';
 import Crosshair from './modules/visual/Crosshair'
+import NotificationManager from './NotificationManager';
+import Notifications from './modules/utility/Notifications';
+import ArrayList from './modules/visual/ArrayList';
 
 class ModuleManager {
   constructor({ tickRate = 60 } = {}) {
@@ -23,6 +26,7 @@ class ModuleManager {
     this.autoLoad = true; /* default to true so configuration loads on startup */
     this.initialized = false;
     this.hudVisibilityInterval = null;
+    this.notifications = new NotificationManager();
     
     this.tickInterval = 1000 / tickRate;
     this.lastTick = performance.now();
@@ -53,7 +57,9 @@ class ModuleManager {
       CPSCounter,
       FPSBooster,
       AdBlocker,
-      Crosshair
+      Crosshair,
+      Notifications,
+      ArrayList
     ];
     
     allModules.forEach(mod => {
@@ -99,6 +105,13 @@ class ModuleManager {
       try { m.onEnable(this); } catch (err) { console.error(`[ModuleManager] onEnable error in "${name}":`, err); }
       m._initialized = true;
       this.saveConfiguration();
+      if (this.initialized && this.get('Notifications')?.enabled) {
+        this.notifications.show({
+            title: 'Module Enabled',
+            message: `<b>${name}</b> has been enabled.`,
+            type: 'success'
+        });
+      }
     }
   }
 
@@ -108,6 +121,13 @@ class ModuleManager {
       m.enabled = false;
       try { m.onDisable(this); } catch (err) { console.error(`[ModuleManager] onDisable error in "${name}":`, err); }
       this.saveConfiguration();
+      if (this.initialized && name !== 'ClickGUI' && this.get('Notifications')?.enabled) {
+        this.notifications.show({
+            title: 'Module Disabled',
+            message: `<b>${name}</b> has been disabled.`,
+            type: 'error'
+        });
+      }
     }
   }
 
@@ -195,6 +215,11 @@ class ModuleManager {
       meta: {
         autoSave: this.autoSave,
         autoLoad: this.autoLoad,
+        theme: {
+            primary: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
+            panelBase: getComputedStyle(document.documentElement).getPropertyValue('--panel-base').trim(),
+            panelOpacity: getComputedStyle(document.documentElement).getPropertyValue('--panel-opacity').trim()
+        }
       }
     };
     for (const [name, mod] of this.modules.entries()) {
@@ -215,6 +240,16 @@ class ModuleManager {
     if (config.meta) {
       this.autoSave = config.meta.autoSave ?? this.autoSave;
       this.autoLoad = config.meta.autoLoad ?? this.autoLoad;
+      if (config.meta.theme && config.meta.theme.primary) {
+        document.documentElement.style.setProperty('--primary', config.meta.theme.primary);
+        document.documentElement.style.setProperty('--primary-dark', this.shadeColor(config.meta.theme.primary, -20));
+      }
+      if (config.meta.theme && config.meta.theme.panelBase) {
+        document.documentElement.style.setProperty('--panel-base', config.meta.theme.panelBase);
+      }
+      if (config.meta.theme && config.meta.theme.panelOpacity) {
+        document.documentElement.style.setProperty('--panel-opacity', config.meta.theme.panelOpacity);
+      }
     }
 
     for (const [name, modConfig] of Object.entries(config)) {
@@ -273,20 +308,38 @@ class ModuleManager {
         settings: mod.settings.map(s => ({ id: s.id, value: s.value }))
       };
     }
-    const json = JSON.stringify(config);
-    return btoa(json);
+    return config;
   }
 
-  importConfiguration(encodedConfig) {
+  importConfiguration(configString) {
     try {
-      const json = atob(encodedConfig);
-      const config = JSON.parse(json);
+      const config = JSON.parse(configString);
       Configuration.save(config);
       this.loadConfiguration(config);
     } catch (err) {
       console.error('[Configuration] Error importing config:', err);
-      alert('Invalid configuration string!');
+      alert('Invalid configuration file!');
     }
+  }
+
+  shadeColor(color, percent) {
+    let R = parseInt(color.substring(1,3),16);
+    let G = parseInt(color.substring(3,5),16);
+    let B = parseInt(color.substring(5,7),16);
+
+    R = parseInt(R * (100 + percent) / 100);
+    G = parseInt(G * (100 + percent) / 100);
+    B = parseInt(B * (100 + percent) / 100);
+
+    R = (R<255)?R:255;  
+    G = (G<255)?G:255;  
+    B = (B<255)?B:255;  
+
+    const RR = ((R.toString(16).length==1)?"0"+R.toString(16):R.toString(16));
+    const GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16));
+    const BB = ((B.toString(16).length==1)?"0"+B.toString(16):B.toString(16));
+
+    return "#"+RR+GG+BB;
   }
 
   startHudVisibilityCheck() {
@@ -295,7 +348,7 @@ class ModuleManager {
     }
     this.hudVisibilityInterval = setInterval(() => {
       const hotbar = document.querySelector('.HotBarGameItemsContainer');
-      const hudModules = this.list().filter(m => m.element);
+      const hudModules = this.list().filter(m => m.element && m.name !== 'ClickGUI');
 
       if (!hotbar) {
         hudModules.forEach(m => {

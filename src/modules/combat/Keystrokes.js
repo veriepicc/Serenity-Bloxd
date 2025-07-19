@@ -20,9 +20,6 @@ const Keystrokes = {
     { id: 'scale', name: 'Scale', type: 'slider', value: 1, min: 0.5, max: 2, step: 0.1 },
     { id: 'opacity', name: 'Opacity', type: 'slider', value: 0.85, min: 0, max: 1, step: 0.05 },
     { id: 'enable-animations', name: 'Enable Animations', type: 'boolean', value: true },
-    { id: 'key-color', name: 'Key Color', type: 'color', value: 'rgba(30, 33, 41, 0.85)' },
-    { id: 'active-color', name: 'Active Color', type: 'color', value: 'rgba(94, 114, 235, 1)' },
-    { id: 'text-color', name: 'Text Color', type: 'color', value: 'rgba(234, 234, 234, 1)' },
   ],
 
   onEnable() {
@@ -137,9 +134,6 @@ const Keystrokes = {
     const settings = this.settings.reduce((acc, s) => ({ ...acc, [s.id]: s.value }), {});
     
     this.element.style.transform = `scale(${settings.scale})`;
-    this.element.style.setProperty('--key-bg', settings['key-color']);
-    this.element.style.setProperty('--key-active-bg', settings['active-color']);
-    this.element.style.setProperty('--key-text', settings['text-color']);
     this.element.style.opacity = settings.opacity;
     
     this.element.classList.toggle('show-mouse', settings['show-mouse']);
