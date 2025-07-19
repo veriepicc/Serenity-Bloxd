@@ -1,8 +1,10 @@
 import ClickGUI from './modules/visual/ClickGUI';
 import FPSCounter from './modules/visual/FPSCounter';
+import Interface from './modules/visual/Interface';
+import Chat from './modules/visual/Chat';
 import Keystrokes from './modules/combat/Keystrokes';
-import ToggleSprint from './modules/movement/ToggleSprint';
-import ArmorStatus from './modules/player/ArmorStatus';
+import ToggleSprint from './modules/movement/ToggleSprint';;
+import ArmorHUD from './modules/player/ArmorHUD';
 import Coordinates from './modules/utility/Coords';
 import CPSCounter from './modules/player/CPSCounter';
 import Configuration from './Configuration';
@@ -10,11 +12,13 @@ import Configuration from './Configuration';
 class ModuleManager {
   constructor({ tickRate = 60 } = {}) {
     this.modules = new Map();
+    this.moduleDefs = new Map();
     this.categories = [
       'Combat', 'Movement', 'Player', 'Visual', 'Utility'
     ];
     this.autoSave = true;
     this.autoLoad = true; /* default to true so configuration loads on startup */
+    this.initialized = false;
     
     this.tickInterval = 1000 / tickRate;
     this.lastTick = performance.now();
@@ -25,8 +29,8 @@ class ModuleManager {
       this.loadConfiguration();
     }
 
-    // Ensure modules marked as enabled are properly initialized
     this.applyInitialStates();
+    this.initialized = true;
 
     requestAnimationFrame(this.ticker);
   }
@@ -35,14 +39,19 @@ class ModuleManager {
     const allModules = [
       ClickGUI,
       FPSCounter,
+      Interface,
+      Chat,
       Keystrokes,
       ToggleSprint,
-      ArmorStatus,
+      ArmorHUD,
       Coordinates,
       CPSCounter
     ];
     
-    allModules.forEach(mod => this.addModule(mod));
+    allModules.forEach(mod => {
+      this.moduleDefs.set(mod.name, mod);
+      this.addModule(mod)
+    });
   }
 
   addModule(mod) {
@@ -58,10 +67,13 @@ class ModuleManager {
       onTick() {},
       onSettingUpdate() {},
       settings: [],
-      x: null,
-      y: null,
+      x: mod.defaultX !== undefined ? mod.defaultX * window.innerWidth : null,
+      y: mod.defaultY !== undefined ? mod.defaultY * window.innerHeight : null,
       ...mod,
     };
+    
+    delete normalized.defaultX;
+    delete normalized.defaultY;
 
     normalized.settings = normalized.settings.map(s => ({
       description: '',
@@ -125,6 +137,21 @@ class ModuleManager {
     }
   }
 
+  resetModuleSettings(moduleName) {
+    const modDef = this.moduleDefs.get(moduleName);
+    const currentMod = this.get(moduleName);
+
+    if (!modDef || !currentMod) return;
+
+    if (modDef.settings) {
+      modDef.settings.forEach(defaultSetting => {
+        this.updateModuleSetting(moduleName, defaultSetting.id, defaultSetting.value);
+      });
+    }
+
+    this.updateModulePosition(moduleName, modDef.x || null, modDef.y || null);
+  }
+
   get(name) {
     return this.modules.get(name);
   }
@@ -165,8 +192,8 @@ class ModuleManager {
     for (const [name, mod] of this.modules.entries()) {
       config[name] = {
         enabled: mod.enabled,
-        x: mod.x,
-        y: mod.y,
+        x: mod.x !== null ? mod.x / window.innerWidth : null,
+        y: mod.y !== null ? mod.y / window.innerHeight : null,
         settings: mod.settings.map(s => ({ id: s.id, value: s.value }))
       };
     }
@@ -186,11 +213,9 @@ class ModuleManager {
       if (name === 'meta') continue;
       const mod = this.modules.get(name);
       if (mod) {
-        // Restore position
-        mod.x = modConfig.x;
-        mod.y = modConfig.y;
+        mod.x = modConfig.x !== null && modConfig.x !== undefined ? modConfig.x * window.innerWidth : null;
+        mod.y = modConfig.y !== null && modConfig.y !== undefined ? modConfig.y * window.innerHeight : null;
 
-        // Restore settings
         if (modConfig.settings) {
           modConfig.settings.forEach(savedSetting => {
             const setting = mod.settings.find(s => s.id === savedSetting.id);
@@ -216,8 +241,9 @@ class ModuleManager {
       }
     }
 
-    // After applying configuration, ensure enabled modules are initialized
-    this.applyInitialStates();
+    if (!this.initialized) {
+        this.applyInitialStates();
+    }
   }
 
   applyInitialStates() {

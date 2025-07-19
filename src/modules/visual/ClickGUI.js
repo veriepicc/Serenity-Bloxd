@@ -12,6 +12,10 @@ const ClickGUI = {
   searchQuery: '',
 
   onEnable(manager) {
+    if (document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+
     if (!document.getElementById('font-awesome-link')) {
       const fontAwesomeLink = document.createElement('link');
       fontAwesomeLink.id = 'font-awesome-link';
@@ -28,6 +32,16 @@ const ClickGUI = {
   },
 
   onDisable() {
+    this.exitHUDeditor(window.Serenity.instance);
+    this.cleanup();
+
+    const gameCanvas = document.querySelector('canvas');
+    if (gameCanvas) {
+        gameCanvas.requestPointerLock();
+    }
+  },
+
+  cleanup() {
     if (this.overlay) {
       this.overlay.classList.remove('visible');
       this.element.classList.remove('visible');
@@ -136,6 +150,29 @@ const ClickGUI = {
     return sidebar;
   },
 
+  exitHUDeditor(manager) {
+    if (!this.isEditingHUD) return;
+
+    const editorOverlay = document.querySelector('.serenity-hud-editor-overlay');
+    if (editorOverlay) {
+        document.body.removeChild(editorOverlay);
+    }
+    
+    this.isEditingHUD = false;
+    this.closeHUDSettingsPopup();
+
+    this.element.style.display = 'flex';
+
+    manager.list().forEach(mod => {
+      if (mod.enabled && mod.element) {
+        mod.element.style.zIndex = mod.name === 'ArmorHUD' || mod.name === 'CPSCounter' || mod.name === 'FPSCounter' || mod.name === 'Interface' ? 9997 : '';
+        mod.element.style.pointerEvents = 'none';
+        mod.element.style.cursor = '';
+        mod.element.onmousedown = null;
+      }
+    });
+  },
+
   renderHUDeditor(manager) {
     this.element.style.display = 'none';
 
@@ -150,6 +187,7 @@ const ClickGUI = {
     manager.list().forEach(mod => {
       if (mod.enabled && mod.element) {
         mod.element.style.zIndex = 10001;
+        mod.element.style.pointerEvents = 'auto';
         this.makeElementDraggable(mod.element, mod, manager);
       }
     });
@@ -159,21 +197,8 @@ const ClickGUI = {
     doneBtn.className = 'serenity-hud-done-btn';
     doneBtn.textContent = 'Done';
     doneBtn.addEventListener('click', () => {
-      // Cleanup
-      document.body.removeChild(editorOverlay);
+      this.exitHUDeditor(manager);
       this.element.style.display = 'flex';
-      this.isEditingHUD = false;
-      this.closeHUDSettingsPopup();
-
-      // Clean up HUD elements
-      manager.list().forEach(mod => {
-        if (mod.enabled && mod.element) {
-          mod.element.style.zIndex = '';
-          mod.element.style.cursor = '';
-          mod.element.onmousedown = null;
-        }
-      });
-      
     });
     editorOverlay.appendChild(doneBtn);
   },
@@ -265,6 +290,18 @@ const ClickGUI = {
       }
     });
     popup.appendChild(settingsContainer);
+
+    const footer = document.createElement('div');
+    footer.className = 'serenity-hud-popup-footer';
+    const resetBtn = document.createElement('button');
+    resetBtn.className = 'serenity-hud-popup-reset-btn';
+    resetBtn.textContent = 'Reset to Defaults';
+    resetBtn.onclick = () => {
+      manager.resetModuleSettings(module.name);
+      this.showHUDSettingsPopup(e, manager.get(module.name), manager, element);
+    };
+    footer.appendChild(resetBtn);
+    popup.appendChild(footer);
 
     document.body.appendChild(popup);
     this.activeHUDSettingsPopup = { element: popup, moduleName: module.name };

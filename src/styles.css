@@ -26,6 +26,7 @@
   z-index: 9998;
   opacity: 0;
   transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 .serenity-overlay.visible {
@@ -581,10 +582,51 @@
 }
 
 .serenity-hud-popup-body {
-  padding: 4px;
+  padding: 10px;
+}
+
+.serenity-hud-popup-footer {
+  padding: 10px;
+  border-top: 1px solid var(--border);
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  justify-content: flex-end;
+}
+
+.serenity-hud-popup-reset-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.serenity-hud-popup-reset-btn:hover {
+  background: var(--primary-dark);
+}
+
+.serenity-config-popup-footer {
+  padding: 15px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.serenity-config-back-btn {
+  background-color: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 8px 15px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.serenity-config-back-btn:hover {
+  background-color: var(--hover);
 }
 
 /* Compact styles for settings inside the HUD popup */
@@ -745,6 +787,121 @@
   position: fixed;
   z-index: 9997;
   user-select: none;
+}
+
+.serenity-interface-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+}
+
+.serenity-interface-logo {
+  background-color: var(--accent-color, var(--primary));
+  color: #fff;
+  width: 2em;
+  height: 2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 1.2em;
+  font-weight: 800;
+}
+
+.serenity-interface-info {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.serenity-interface-name {
+  font-weight: 700;
+  color: var(--accent-color, var(--primary));
+}
+
+.serenity-interface-gamemode {
+  font-weight: 700;
+}
+
+.serenity-interface-lobby {
+  opacity: 0.7;
+  font-size: 0.9em;
+}
+
+/* Chat Module Styles */
+.serenity-chat-container {
+  position: absolute;
+  width: 350px;
+  max-width: 25%;
+  z-index: 9996;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.serenity-chat-messages {
+  background-color: var(--chat-bg-color, rgba(30, 33, 41, 0.8));
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: auto;
+  width: 100%;
+}
+
+.serenity-chat-message {
+  padding: 2px 0;
+  font-size: var(--chat-font-size, 14px);
+  color: #fff;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  line-height: 1.4;
+}
+
+.serenity-message-content {
+  flex-grow: 1;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.serenity-message-own-name {
+  color: var(--accent, #E54B4B) !important;
+  font-weight: 700;
+}
+
+.serenity-message-tag {
+  color: #a970e3 !important; /* A nice purple */
+  font-weight: 600;
+}
+
+.serenity-message-timestamp {
+  font-size: 0.8em;
+  opacity: 0.6;
+}
+
+.serenity-chat-input-wrapper {
+  display: flex;
+}
+
+.serenity-chat-input {
+  flex-grow: 1;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: var(--chat-font-size, 14px);
+  outline: none;
+  transition: var(--transition);
+  pointer-events: auto;
+}
+
+.serenity-chat-input:focus {
+  border-color: var(--primary);
 }
 
 /* Global styles */

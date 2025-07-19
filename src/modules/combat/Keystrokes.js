@@ -1,7 +1,7 @@
-export default {
+const Keystrokes = {
   name: 'Keystrokes',
   category: 'Combat',
-  description: 'Displays your W, A, S, D, and mouse clicks on screen.',
+  description: 'Displays your keystrokes on the screen.',
   enabled: false,
   settings: [
     {
@@ -30,4 +30,6 @@ export default {
       step: 0.1,
     }
   ],
-}; 
+};
+
+export default Keystrokes; 

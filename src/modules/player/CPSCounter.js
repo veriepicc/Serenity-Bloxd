@@ -3,6 +3,8 @@ const CPSCounter = {
   category: 'Player',
   description: 'Displays your clicks per second.',
   enabled: true,
+  defaultX: 3 / 1920,
+  defaultY: 370 / 1080,
   settings: [
     { id: 'bg-color', name: 'Background Color', type: 'color', value: 'rgba(30, 33, 41, 0.85)' },
     { id: 'text-color', name: 'Text Color', type: 'color', value: '#EAEAEA' },
@@ -113,6 +115,10 @@ const CPSCounter = {
     this.element.style.padding = `${settings['padding']}px`;
     this.element.style.borderRadius = `${settings['border-radius']}px`;
     this.element.style.border = `${settings['border-width']}px solid ${settings['border-color']}`;
+    this.element.style.position = 'absolute';
+    this.element.style.userSelect = 'none';
+    this.element.style.zIndex = 9997;
+    this.element.style.pointerEvents = 'none';
   }
 };
 
