@@ -1726,11 +1726,6 @@ body.serenity-no-scroll {
     font-weight: bold;
 }
 
-/* Hotbar Styles */
-.hotbar-style-default {
-    /* Default styles defined above */
-}
-
 .hotbar-style-compact .serenity-hotbar-slot {
     border-radius: 2px;
     margin: 0 1px !important;

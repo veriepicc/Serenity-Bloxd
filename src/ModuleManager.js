@@ -34,15 +34,17 @@ class ModuleManager {
     this.ticker = this.ticker.bind(this);
     
     this.init();
-    if (this.autoLoad) {
-      this.loadConfiguration();
-    }
-
-    this.applyInitialStates();
-    this.initialized = true;
 
     this.startHudVisibilityCheck();
     requestAnimationFrame(this.ticker);
+  }
+
+  start() {
+    if (this.autoLoad) {
+      this.loadConfiguration();
+    }
+    this.applyInitialStates();
+    this.initialized = true;
   }
 
   init() {

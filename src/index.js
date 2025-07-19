@@ -6,6 +6,7 @@ import ModuleManager from './ModuleManager';
 
   const manager = new ModuleManager();
   window.Serenity = { instance: manager };
+  manager.start();
 
   setTimeout(() => {
     if (!manager.notifications) return;
