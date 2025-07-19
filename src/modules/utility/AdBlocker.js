@@ -21,7 +21,8 @@ const AdBlocker = {
         '.UiRequests',
         '.AdBanner',
         '.GenericVideoWrapper',
-        '#bloxd-io_300x600_2'
+        '#bloxd-io_300x600_2',
+        '.InventoryAdOuter'
     ],
     
     blockList: [
@@ -113,8 +114,9 @@ const AdBlocker = {
     },
 
     hideElement(node) {
-        if (node.style.display !== 'none') {
-            node.style.display = 'none';
+        if (node.style.opacity !== '0') {
+            node.style.opacity = '0';
+            node.style.pointerEvents = 'none';
         }
     },
     

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 :root {
   --primary: #5E72EB; /* A nice modern blue */
   --primary-dark: #4D5DBF;
@@ -1013,8 +1015,11 @@ body {
   padding: 0;
 }
 
+body.serenity-no-scroll {
+  overflow: hidden;
+}
+
 /* Ensure the font is loaded */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 /* Keystrokes Module */
 .keystrokes-display {
@@ -1602,6 +1607,200 @@ body {
     display: flex;
     flex-direction: column;
     gap: 25px;
+}
+
+/* Hotbar Module Styles */
+.serenity-hotbar-wrapper {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px; /* Add some space between aura bar and hotbar */
+    pointer-events: none;
+    user-select: none;
+}
+
+.serenity-hotbar-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    pointer-events: auto;
+}
+
+.serenity-hotbar-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.serenity-hotbar-filler {
+    flex-grow: 1;
+    max-width: 20px;
+}
+
+.serenity-hotbar-items {
+    display: flex;
+    align-items: center;
+    gap: var(--hotbar-slot-spacing);
+}
+
+.serenity-hotbar-slot {
+    position: relative;
+    width: var(--hotbar-slot-size);
+    height: var(--hotbar-slot-size);
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: all 0.15s ease-out;
+}
+
+.serenity-hotbar-slot.selected {
+    border-color: var(--primary);
+    box-shadow: 0 0 8px var(--primary);
+}
+
+.serenity-hotbar-item-img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+    image-rendering: pixelated;
+}
+
+.serenity-slot-number {
+    position: absolute;
+    bottom: 2px;
+    right: 4px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 10px;
+    font-weight: bold;
+    z-index: 1;
+    text-shadow: 0 0 2px #000;
+}
+
+.serenity-slot-amount {
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 1;
+    text-shadow: 1px 1px 2px #000;
+}
+
+.serenity-hotbar-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+}
+
+.serenity-hotbar-button-icon {
+    position: relative;
+    color: #fff;
+    font-size: 18px;
+}
+
+.serenity-hotbar-key-helper {
+    position: absolute;
+    bottom: -12px;
+    right: -8px;
+    font-size: 10px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    border-radius: 3px;
+    padding: 1px 4px;
+    font-weight: bold;
+}
+
+/* Hotbar Styles */
+.hotbar-style-default {
+    /* Default styles defined above */
+}
+
+.hotbar-style-compact .serenity-hotbar-slot {
+    border-radius: 2px;
+    margin: 0 1px !important;
+}
+
+.hotbar-style-compact .serenity-hotbar-button {
+    border-radius: 2px;
+}
+
+.hotbar-style-modern .serenity-hotbar-slot {
+    background-color: rgba(20, 22, 30, 0.7);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.hotbar-style-modern .serenity-hotbar-slot.selected {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(94, 114, 235, 0.3);
+}
+
+.hotbar-style-modern .serenity-hotbar-button {
+    background-color: rgba(20, 22, 30, 0.7);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Aura Bar Styles */
+.serenity-aura-bar {
+    width: 250px;
+    height: 18px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    padding: 2px;
+    position: relative;
+    overflow: hidden;
+}
+
+.serenity-aura-bar-background {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.serenity-aura-bar-progress {
+    height: 100%;
+    background-color: var(--primary);
+    transition: width 0.3s ease-in-out;
+}
+
+.serenity-aura-bar-text {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    text-align: center;
+    color: #fff;
+    font-weight: bold;
+    font-size: 12px;
+    text-shadow: 0 0 3px #000;
 }
 
 /* Fluid Hero Animation */

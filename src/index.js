@@ -1,5 +1,5 @@
-import ModuleManager from './ModuleManager';
 import './styles.css';
+import ModuleManager from './ModuleManager';
 
 (function() {
   'use strict';

@@ -5,6 +5,7 @@ import Chat from './modules/visual/Chat';
 import Keystrokes from './modules/combat/Keystrokes';
 import ToggleSprint from './modules/movement/ToggleSprint';;
 import ArmorHUD from './modules/player/ArmorHUD';
+import Hotbar from './modules/player/Hotbar';
 import Coordinates from './modules/utility/Coords';
 import CPSCounter from './modules/player/CPSCounter';
 import FPSBooster from './modules/utility/FPSBooster';
@@ -53,6 +54,7 @@ class ModuleManager {
       Keystrokes,
       ToggleSprint,
       ArmorHUD,
+      Hotbar,
       Coordinates,
       CPSCounter,
       FPSBooster,

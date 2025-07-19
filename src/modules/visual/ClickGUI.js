@@ -19,6 +19,7 @@ const ClickGUI = {
     if (this.isCleaningUp || this.element) return;
 
     this.isGuiOpen = true; 
+    document.body.classList.add('serenity-no-scroll');
     if (document.pointerLockElement) {
       document.exitPointerLock();
     }
@@ -41,6 +42,7 @@ const ClickGUI = {
   onDisable(manager) {
     this.isGuiOpen = false;
     this.exitHUDeditor(manager);
+    document.body.classList.remove('serenity-no-scroll');
 
     const gameCanvas = document.getElementById('noa-canvas');
     if (gameCanvas && !document.pointerLockElement) {
@@ -63,6 +65,8 @@ const ClickGUI = {
         this.overlay = null;
         this.element = null;
         this.isCleaningUp = false;
+
+        document.body.classList.remove('serenity-no-scroll');
 
         const fontAwesomeLink = document.getElementById('font-awesome-link');
         if (fontAwesomeLink) {
