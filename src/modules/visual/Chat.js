@@ -192,18 +192,6 @@ const Chat = {
         const settings = this.settings.reduce((acc, s) => ({ ...acc, [s.id]: s.value }), {});
         this.element.style.setProperty('--chat-bg-color', settings['bg-color']);
         this.element.style.setProperty('--chat-font-size', `${settings['font-size']}px`);
-    },
-
-    enterMenuMode() {
-        if (this.element) this.element.style.display = 'none';
-        if (this.chatObserver) this.chatObserver.disconnect();
-        this.chatObserver = null;
-        this.restoreGameChat();
-    },
-
-    exitMenuMode() {
-        if (this.element) this.element.style.display = 'flex';
-        this.handleGameChat();
     }
 };
 

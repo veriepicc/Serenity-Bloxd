@@ -10,6 +10,7 @@ import CPSCounter from './modules/player/CPSCounter';
 import FPSBooster from './modules/utility/FPSBooster';
 import AdBlocker from './modules/utility/AdBlocker';
 import Configuration from './Configuration';
+import Crosshair from './modules/visual/Crosshair'
 
 class ModuleManager {
   constructor({ tickRate = 60 } = {}) {
@@ -51,7 +52,8 @@ class ModuleManager {
       Coordinates,
       CPSCounter,
       FPSBooster,
-      AdBlocker
+      AdBlocker,
+      Crosshair
     ];
     
     allModules.forEach(mod => {
@@ -294,21 +296,16 @@ class ModuleManager {
     this.hudVisibilityInterval = setInterval(() => {
       const hotbar = document.querySelector('.HotBarGameItemsContainer');
       const hudModules = this.list().filter(m => m.element);
-      const chatModule = this.get('Chat');
 
       if (!hotbar) {
         hudModules.forEach(m => {
-          if (m.name === 'Chat' && typeof m.enterMenuMode === 'function') {
-            m.enterMenuMode();
-          } else if (m.element && !m.element.classList.contains('serenity-hidden')) {
+          if (m.element && !m.element.classList.contains('serenity-hidden')) {
             m.element.classList.add('serenity-hidden');
           }
         });
       } else {
         hudModules.forEach(m => {
-          if (m.name === 'Chat' && typeof m.exitMenuMode === 'function') {
-            m.exitMenuMode();
-          } else if (m.element && m.element.classList.contains('serenity-hidden')) {
+          if (m.element && m.element.classList.contains('serenity-hidden')) {
             m.element.classList.remove('serenity-hidden');
           }
         });

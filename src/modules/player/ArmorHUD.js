@@ -4,8 +4,8 @@ const ArmorHUD = {
     description: 'Displays your currently equipped armor and selected item.',
     enabled: true,
     observer: null,
-    defaultX: 1.58203125,
-    defaultY: 399.87847222222223,
+    defaultX: 1442,
+    defaultY: 468,
     settings: [
       { id: 'show-selected', name: 'Show Selected Item', type: 'boolean', value: true },
       { id: 'display-style', name: 'Display Style', type: 'select', options: ['Horizontal', 'Vertical'], value: 'Vertical' },
