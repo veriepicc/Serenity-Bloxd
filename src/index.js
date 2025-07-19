@@ -1,5 +1,6 @@
 import './styles.css';
 import ModuleManager from './ModuleManager';
+import PlayerTracker from './PlayerTracker';
 
 (function() {
   'use strict';
@@ -7,6 +8,8 @@ import ModuleManager from './ModuleManager';
   const manager = new ModuleManager();
   window.Serenity = { instance: manager };
   manager.start();
+  
+  new PlayerTracker(manager);
 
   setTimeout(() => {
     if (!manager.notifications) return;

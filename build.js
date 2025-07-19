@@ -10,8 +10,8 @@ const outdir = 'dist';
 if (!fs.existsSync(outdir)) {
     fs.mkdirSync(outdir);
 }
-const jsOutfile = path.join(outdir, 'serenity.user.js');
-const cssOutfile = path.join(outdir, 'serenity.user.css');
+const jsOutfile = path.join(outdir, 'Serenity.js');
+const cssOutfile = path.join(outdir, 'Serenity.css');
 
 // Custom esbuild plugin to inject the CSS into the JS bundle
 const cssInjectorPlugin = {
