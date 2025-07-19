@@ -2,6 +2,7 @@ const esbuild = require('esbuild');
 const stylePlugin = require('esbuild-style-plugin');
 const fs = require('fs');
 const path = require('path');
+const packageJson = require('./package.json');
 
 const isWatch = process.argv.includes('--watch');
 
@@ -41,10 +42,12 @@ const cssInjectorPlugin = {
             const injectionCode = `
 // ==UserScript==
 // @name         Serenity Client
-// @version      1.0.0
+// @version      ${packageJson.version}
 // @description  A feature-rich client for Bloxd.io
 // @author       Serenity Development
 // @match        *://*.bloxd.io/*
+// @downloadURL  https://raw.githubusercontent.com/veriepicc/Serenity-Bloxd/main/dist/Serenity.js
+// @updateURL    https://raw.githubusercontent.com/veriepicc/Serenity-Bloxd/main/dist/Serenity.js
 // @grant        none
 // @run-at       document-start
 // ==/UserScript==

@@ -1,3 +1,4 @@
+/*
 class PlayerTracker {
     constructor(manager) {
         this.manager = manager;
@@ -64,3 +65,4 @@ class PlayerTracker {
 }
 
 export default PlayerTracker; 
+*/ 
