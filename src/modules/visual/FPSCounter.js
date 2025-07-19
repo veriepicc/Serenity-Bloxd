@@ -3,8 +3,8 @@ const FPSCounter = {
   category: 'Visual',
   description: 'Displays your current frames per second.',
   enabled: true,
-  defaultX: 6 / 1920,
-  defaultY: 330 / 1080,
+  defaultX: 408,
+  defaultY: 11,
   settings: [
     { id: 'bg-color', name: 'Background Color', type: 'color', value: 'rgba(30, 33, 41, 0.85)' },
     { id: 'text-color', name: 'Text Color', type: 'color', value: '#EAEAEA' },

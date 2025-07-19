@@ -2,7 +2,7 @@ const ClickGUI = {
   name: 'ClickGUI',
   category: 'Visual',
   description: 'The main user interface for the client.',
-  enabled: false,
+  enabled: true,
   element: null,
   overlay: null,
   activeCategory: 'Visual',
@@ -10,8 +10,10 @@ const ClickGUI = {
   isEditingHUD: false,
   activeHUDSettingsPopup: null,
   searchQuery: '',
+  isGuiOpen: false,
 
   onEnable(manager) {
+    this.isGuiOpen = true; 
     if (document.pointerLockElement) {
       document.exitPointerLock();
     }
@@ -31,14 +33,17 @@ const ClickGUI = {
     }, 50);
   },
 
-  onDisable() {
-    this.exitHUDeditor(window.Serenity.instance);
-    this.cleanup();
+  onDisable(manager) {
+    this.isGuiOpen = false;
+    this.exitHUDeditor(manager);
 
-    const gameCanvas = document.querySelector('canvas');
-    if (gameCanvas) {
-        gameCanvas.requestPointerLock();
+    const gameCanvas = document.getElementById('noa-canvas');
+    if (gameCanvas && !document.pointerLockElement) {
+      gameCanvas.requestPointerLock();
+      gameCanvas.click();
     }
+    
+    this.cleanup();
   },
 
   cleanup() {
@@ -161,7 +166,11 @@ const ClickGUI = {
     this.isEditingHUD = false;
     this.closeHUDSettingsPopup();
 
+    if (this.overlay) {
+        this.overlay.style.zIndex = '9998';
+    }
     this.element.style.display = 'flex';
+    this.element.style.pointerEvents = 'auto';
 
     manager.list().forEach(mod => {
       if (mod.enabled && mod.element) {
@@ -175,6 +184,9 @@ const ClickGUI = {
 
   renderHUDeditor(manager) {
     this.element.style.display = 'none';
+    if (this.overlay) {
+        this.overlay.style.zIndex = '-1';
+    }
 
     const editorOverlay = document.createElement('div');
     editorOverlay.className = 'serenity-hud-editor-overlay';
@@ -197,8 +209,7 @@ const ClickGUI = {
     doneBtn.className = 'serenity-hud-done-btn';
     doneBtn.textContent = 'Done';
     doneBtn.addEventListener('click', () => {
-      this.exitHUDeditor(manager);
-      this.element.style.display = 'flex';
+      manager.disable('ClickGUI');
     });
     editorOverlay.appendChild(doneBtn);
   },
@@ -233,15 +244,35 @@ const ClickGUI = {
       pos3 = e.clientX;
       pos4 = e.clientY;
       // Set the element's new position
-      const newTop = element.offsetTop - pos2;
-      const newLeft = element.offsetLeft - pos1;
+      let newTop = element.offsetTop - pos2;
+      let newLeft = element.offsetLeft - pos1;
+
+      // Get screen and element dimensions
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+      const elementWidth = element.offsetWidth;
+      const elementHeight = element.offsetHeight;
+
+      // Add boundary checks to prevent going off-screen
+      newLeft = Math.max(0, Math.min(newLeft, screenWidth - elementWidth));
+      newTop = Math.max(0, Math.min(newTop, screenHeight - elementHeight));
+
       element.style.top = `${newTop}px`;
       element.style.left = `${newLeft}px`;
 
-      // Move popup with the module
+      // Move popup with the module and check its boundaries
       if (this.activeHUDSettingsPopup && this.activeHUDSettingsPopup.moduleName === module.name) {
-        this.activeHUDSettingsPopup.element.style.top = `${newTop}px`;
-        this.activeHUDSettingsPopup.element.style.left = `${newLeft + element.offsetWidth + 10}px`;
+        const popup = this.activeHUDSettingsPopup.element;
+        const popupWidth = popup.offsetWidth;
+        let popupLeft = newLeft + elementWidth + 10;
+
+        // Flip popup to the other side if it goes off-screen
+        if (popupLeft + popupWidth > screenWidth) {
+          popupLeft = newLeft - popupWidth - 10;
+        }
+        
+        popup.style.top = `${newTop}px`;
+        popup.style.left = `${popupLeft}px`;
       }
     };
     
@@ -265,10 +296,6 @@ const ClickGUI = {
     const popup = document.createElement('div');
     popup.className = 'serenity-hud-settings-popup';
     
-    const rect = element.getBoundingClientRect();
-    popup.style.top = `${rect.top}px`;
-    popup.style.left = `${rect.left + rect.width + 10}px`;
-
     const header = document.createElement('div');
     header.className = 'serenity-hud-popup-header';
     const title = document.createElement('span');
@@ -304,6 +331,20 @@ const ClickGUI = {
     popup.appendChild(footer);
 
     document.body.appendChild(popup);
+    
+    const rect = element.getBoundingClientRect();
+    const screenWidth = window.innerWidth;
+    const popupWidth = popup.offsetWidth;
+    let popupLeft = rect.left + rect.width + 10;
+
+    // Check if popup goes off-screen
+    if (popupLeft + popupWidth > screenWidth) {
+      popupLeft = rect.left - popupWidth - 10;
+    }
+
+    popup.style.top = `${rect.top}px`;
+    popup.style.left = `${popupLeft}px`;
+
     this.activeHUDSettingsPopup = { element: popup, moduleName: module.name };
   },
 
@@ -697,14 +738,8 @@ const ClickGUI = {
         controlContainer.appendChild(textInput);
         break;
       case 'color':
-        const colorInput = document.createElement('input');
-        colorInput.type = 'color';
-        colorInput.value = setting.value;
-        colorInput.className = 'serenity-color-picker';
-        colorInput.addEventListener('input', (e) => {
-          manager.updateModuleSetting(module.name, setting.id, e.target.value);
-        });
-        controlContainer.appendChild(colorInput);
+        const colorPicker = this.createColorPicker(module, setting, manager);
+        controlContainer.appendChild(colorPicker);
         break;
     }
     
@@ -724,6 +759,95 @@ const ClickGUI = {
         }
       }
     });
+  },
+
+  // --- Start of Color Picker Helper Functions ---
+
+  createColorPicker(module, setting, manager) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'serenity-color-picker-wrapper';
+
+    const swatch = document.createElement('div');
+    swatch.className = 'serenity-color-swatch';
+    swatch.style.color = setting.value;
+
+    const popup = this.createColorPopup(module, setting, manager, swatch);
+    
+    swatch.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const a = document.querySelector('.serenity-color-popup');
+      if (a && a !== popup) a.remove()
+      if (document.querySelector('.serenity-color-popup') === popup) {
+          popup.remove();
+      } else {
+          wrapper.appendChild(popup);
+      }
+    });
+
+    wrapper.appendChild(swatch);
+
+    // Close popup when clicking elsewhere
+    document.addEventListener('click', (e) => {
+      if (!wrapper.contains(e.target)) {
+        popup.remove();
+      }
+    });
+
+    return wrapper;
+  },
+
+  createColorPopup(module, setting, manager, swatch) {
+    const popup = document.createElement('div');
+    popup.className = 'serenity-color-popup';
+
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.value = this.rgbaToHex(setting.value).hex;
+    
+    const alphaSlider = document.createElement('input');
+    alphaSlider.type = 'range';
+    alphaSlider.className = 'serenity-slider';
+    alphaSlider.min = 0;
+    alphaSlider.max = 1;
+    alphaSlider.step = 0.01;
+    alphaSlider.value = this.rgbaToHex(setting.value).alpha;
+
+    const updateColor = () => {
+      const hex = colorInput.value;
+      const alpha = parseFloat(alphaSlider.value);
+      const rgba = this.hexToRgba(hex, alpha);
+      
+      swatch.style.color = rgba;
+      manager.updateModuleSetting(module.name, setting.id, rgba);
+    };
+
+    colorInput.addEventListener('input', updateColor);
+    alphaSlider.addEventListener('input', updateColor);
+
+    popup.appendChild(colorInput);
+    popup.appendChild(alphaSlider);
+    return popup;
+  },
+
+  hexToRgba(hex, alpha) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  },
+
+  rgbaToHex(rgba) {
+    if (rgba.startsWith('#')) return { hex: rgba, alpha: 1 };
+    const parts = rgba.match(/[\d.]+/g);
+    if (!parts || parts.length < 3) return { hex: '#000000', alpha: 1 };
+    
+    const r = parseInt(parts[0]).toString(16).padStart(2, '0');
+    const g = parseInt(parts[1]).toString(16).padStart(2, '0');
+    const b = parseInt(parts[2]).toString(16).padStart(2, '0');
+    
+    const alpha = parts.length >= 4 ? parseFloat(parts[3]) : 1;
+    
+    return { hex: `#${r}${g}${b}`, alpha };
   }
 };
 

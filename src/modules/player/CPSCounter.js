@@ -3,8 +3,8 @@ const CPSCounter = {
   category: 'Player',
   description: 'Displays your clicks per second.',
   enabled: true,
-  defaultX: 3 / 1920,
-  defaultY: 370 / 1080,
+  defaultX: -1,
+  defaultY: 360,
   settings: [
     { id: 'bg-color', name: 'Background Color', type: 'color', value: 'rgba(30, 33, 41, 0.85)' },
     { id: 'text-color', name: 'Text Color', type: 'color', value: '#EAEAEA' },

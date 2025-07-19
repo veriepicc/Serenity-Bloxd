@@ -1,11 +1,13 @@
 const ArmorHUD = {
     name: 'ArmorHUD',
     category: 'Player',
-    description: 'Displays your currently equipped armor.',
+    description: 'Displays your currently equipped armor and selected item.',
     enabled: true,
-    defaultX: 6 / 1920,
-    defaultY: 410 / 1080,
+    observer: null,
+    defaultX: 1.58203125,
+    defaultY: 399.87847222222223,
     settings: [
+      { id: 'show-selected', name: 'Show Selected Item', type: 'boolean', value: true },
       { id: 'display-style', name: 'Display Style', type: 'select', options: ['Horizontal', 'Vertical'], value: 'Vertical' },
       { id: 'bg-color', name: 'Background Color', type: 'color', value: 'rgba(30, 33, 41, 0.85)' },
       { id: 'padding', name: 'Padding', type: 'slider', value: 4, min: 0, max: 20, step: 1 },
@@ -21,9 +23,14 @@ const ArmorHUD = {
     onEnable() {
       this.createDisplay();
       this.applyStyles();
+      this.setupObserver();
     },
   
     onDisable() {
+      if (this.observer) {
+        this.observer.disconnect();
+        this.observer = null;
+      }
       this.destroyDisplay();
     },
   
@@ -34,6 +41,36 @@ const ArmorHUD = {
     onSettingUpdate() {
       this.applyStyles();
       this.updateDisplay(true); // Force update to reflect style changes
+    },
+  
+    setupObserver() {
+        const setup = () => {
+            const hotbar = document.querySelector('.HotBarGameItemsContainer');
+            if (hotbar && !this.observer) {
+                this.observer = new MutationObserver((mutations) => {
+                    const selectionChanged = mutations.some(m => 
+                        m.type === 'attributes' && 
+                        m.attributeName === 'class' &&
+                        m.target.classList.contains('InvenItem')
+                    );
+                    
+                    if (selectionChanged) {
+                        this.updateDisplay(true);
+                    }
+                });
+
+                this.observer.observe(hotbar, {
+                    attributes: true,
+                    subtree: true,
+                    attributeFilter: ['class']
+                });
+                this.updateDisplay(true);
+
+            } else if (!hotbar) {
+                setTimeout(setup, 500);
+            }
+        };
+        setup();
     },
   
     createDisplay() {
@@ -49,6 +86,34 @@ const ArmorHUD = {
       }
     },
   
+    extractImage(itemElement) {
+        if (!itemElement) return null;
+    
+        const twoDImageIcon = itemElement.querySelector('.TwoDImageIcon');
+        if (twoDImageIcon) {
+            if (twoDImageIcon.style.backgroundImage && twoDImageIcon.style.backgroundImage !== 'none') {
+                return { type: 'image', src: twoDImageIcon.style.backgroundImage.slice(5, -2), filter: null };
+            }
+            const img = itemElement.querySelector('.TwoDItemGrayscaleVisiblePng');
+            const colorHint = itemElement.querySelector('.TwoDItemGrayscale');
+            if (img) {
+                return { type: 'image', src: img.src, filter: colorHint ? colorHint.style.filter : '' };
+            }
+        }
+    
+        const blockItem = itemElement.querySelector('.BlockItem');
+        if (blockItem && blockItem.style.backgroundImage && blockItem.style.backgroundImage !== 'none') {
+            return { type: 'image', src: blockItem.style.backgroundImage.slice(5, -2), filter: null };
+        }
+        
+        const unfilled = itemElement.querySelector('.InvenItemUnfilled');
+        if (unfilled) {
+            return { type: 'unfilled', src: unfilled.style.backgroundImage.slice(5, -2) };
+        }
+        
+        return null;
+    },
+  
     updateDisplay(forceUpdate = false) {
       if (!this.element) return;
   
@@ -60,36 +125,26 @@ const ArmorHUD = {
           if (mod.y !== null) this.element.style.top = `${mod.y}px`;
       }
   
-      // Update armor images
       const armorContainer = document.querySelector('.ArmourItemSlots');
-      if (!armorContainer) return;
+      const armorItems = armorContainer ? Array.from(armorContainer.querySelectorAll('.InvenItem')) : [];
+      const armorImages = armorItems.map(item => this.extractImage(item)).filter(Boolean);
   
-      const armorItems = Array.from(armorContainer.querySelectorAll('.InvenItem'));
-      const images = armorItems.map(item => {
-        const twoDImageIcon = item.querySelector('.TwoDImageIcon');
-        const unfilled = item.querySelector('.InvenItemUnfilled');
+      const settings = window.Serenity.instance.get(this.name).settings;
+      const showSelected = settings.find(s => s.id === 'show-selected').value;
 
-        if (twoDImageIcon) {
-            if (twoDImageIcon.style.backgroundImage && twoDImageIcon.style.backgroundImage !== 'none') {
-                return { type: 'image', src: twoDImageIcon.style.backgroundImage.slice(5, -2), filter: null };
-            }
-            const img = item.querySelector('.TwoDItemGrayscaleVisiblePng');
-            const colorHint = item.querySelector('.TwoDItemGrayscale');
-            if (img) {
-                return { type: 'image', src: img.src, filter: colorHint ? colorHint.style.filter : '' };
-            }
-        }
-
-        if (unfilled) {
-            return { type: 'unfilled', src: unfilled.style.backgroundImage.slice(5, -2) };
-        }
-        return null;
-      });
+      const allImages = [...armorImages];
+      if (showSelected) {
+          const selectedHotbarItemEl = document.querySelector('.HotBarGameItemsContainer .InvenItem.Selected');
+          const selectedItemImage = this.extractImage(selectedHotbarItemEl);
+          if (selectedItemImage) {
+              allImages.push(selectedItemImage);
+          }
+      }
   
-      const newContentHash = JSON.stringify(images);
+      const newContentHash = JSON.stringify(allImages);
       if (newContentHash !== this.lastContentHash || forceUpdate) {
         this.element.innerHTML = '';
-        images.forEach(imgData => {
+        allImages.forEach(imgData => {
           if (!imgData) return;
           
           const itemContainer = document.createElement('div');

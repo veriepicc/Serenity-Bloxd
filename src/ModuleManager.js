@@ -7,6 +7,8 @@ import ToggleSprint from './modules/movement/ToggleSprint';;
 import ArmorHUD from './modules/player/ArmorHUD';
 import Coordinates from './modules/utility/Coords';
 import CPSCounter from './modules/player/CPSCounter';
+import FPSBooster from './modules/utility/FPSBooster';
+import AdBlocker from './modules/utility/AdBlocker';
 import Configuration from './Configuration';
 
 class ModuleManager {
@@ -19,6 +21,7 @@ class ModuleManager {
     this.autoSave = true;
     this.autoLoad = true; /* default to true so configuration loads on startup */
     this.initialized = false;
+    this.hudVisibilityInterval = null;
     
     this.tickInterval = 1000 / tickRate;
     this.lastTick = performance.now();
@@ -32,6 +35,7 @@ class ModuleManager {
     this.applyInitialStates();
     this.initialized = true;
 
+    this.startHudVisibilityCheck();
     requestAnimationFrame(this.ticker);
   }
 
@@ -45,7 +49,9 @@ class ModuleManager {
       ToggleSprint,
       ArmorHUD,
       Coordinates,
-      CPSCounter
+      CPSCounter,
+      FPSBooster,
+      AdBlocker
     ];
     
     allModules.forEach(mod => {
@@ -67,8 +73,8 @@ class ModuleManager {
       onTick() {},
       onSettingUpdate() {},
       settings: [],
-      x: mod.defaultX !== undefined ? mod.defaultX * window.innerWidth : null,
-      y: mod.defaultY !== undefined ? mod.defaultY * window.innerHeight : null,
+      x: mod.defaultX !== undefined ? mod.defaultX : null,
+      y: mod.defaultY !== undefined ? mod.defaultY : null,
       ...mod,
     };
     
@@ -119,7 +125,7 @@ class ModuleManager {
       setting.value = value;
       if (typeof m.onSettingUpdate === 'function') {
         try {
-          m.onSettingUpdate(settingId, value);
+          m.onSettingUpdate(settingId, value, this);
         } catch (err) {
           console.error(`[ModuleManager] onSettingUpdate error in "${moduleName}":`, err);
         }
@@ -192,8 +198,8 @@ class ModuleManager {
     for (const [name, mod] of this.modules.entries()) {
       config[name] = {
         enabled: mod.enabled,
-        x: mod.x !== null ? mod.x / window.innerWidth : null,
-        y: mod.y !== null ? mod.y / window.innerHeight : null,
+        x: mod.x,
+        y: mod.y,
         settings: mod.settings.map(s => ({ id: s.id, value: s.value }))
       };
     }
@@ -213,8 +219,8 @@ class ModuleManager {
       if (name === 'meta') continue;
       const mod = this.modules.get(name);
       if (mod) {
-        mod.x = modConfig.x !== null && modConfig.x !== undefined ? modConfig.x * window.innerWidth : null;
-        mod.y = modConfig.y !== null && modConfig.y !== undefined ? modConfig.y * window.innerHeight : null;
+        mod.x = modConfig.x !== null && modConfig.x !== undefined ? modConfig.x : null;
+        mod.y = modConfig.y !== null && modConfig.y !== undefined ? modConfig.y : null;
 
         if (modConfig.settings) {
           modConfig.settings.forEach(savedSetting => {
@@ -223,7 +229,7 @@ class ModuleManager {
               setting.value = savedSetting.value;
               if (typeof mod.onSettingUpdate === 'function') {
                 try {
-                  mod.onSettingUpdate(setting.id, savedSetting.value);
+                  mod.onSettingUpdate(setting.id, savedSetting.value, this);
                 } catch (err) {
                   console.error(`[ModuleManager] onSettingUpdate error in "${name}":`, err);
                 }
@@ -249,7 +255,6 @@ class ModuleManager {
   applyInitialStates() {
     this.modules.forEach((m) => {
       if (m.enabled && !m._initialized) {
-        // Temporarily mark as disabled so enable() triggers onEnable lifecycle
         m.enabled = false;
         this.enable(m.name);
       }
@@ -280,6 +285,35 @@ class ModuleManager {
       console.error('[Configuration] Error importing config:', err);
       alert('Invalid configuration string!');
     }
+  }
+
+  startHudVisibilityCheck() {
+    if (this.hudVisibilityInterval) {
+      clearInterval(this.hudVisibilityInterval);
+    }
+    this.hudVisibilityInterval = setInterval(() => {
+      const hotbar = document.querySelector('.HotBarGameItemsContainer');
+      const hudModules = this.list().filter(m => m.element);
+      const chatModule = this.get('Chat');
+
+      if (!hotbar) {
+        hudModules.forEach(m => {
+          if (m.name === 'Chat' && typeof m.enterMenuMode === 'function') {
+            m.enterMenuMode();
+          } else if (m.element && !m.element.classList.contains('serenity-hidden')) {
+            m.element.classList.add('serenity-hidden');
+          }
+        });
+      } else {
+        hudModules.forEach(m => {
+          if (m.name === 'Chat' && typeof m.exitMenuMode === 'function') {
+            m.exitMenuMode();
+          } else if (m.element && m.element.classList.contains('serenity-hidden')) {
+            m.element.classList.remove('serenity-hidden');
+          }
+        });
+      }
+    }, 500);
   }
 }
 
