@@ -96,27 +96,19 @@ const ClickGUI = {
     const logo = document.createElement('div');
     logo.className = 'serenity-logo';
     logo.innerHTML = `
-      <div class="serenity-logo-icon">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="currentColor"/>
-          <path d="M2 17L12 22L22 17V7L12 12L2 7V17Z" fill="currentColor" opacity="0.5"/>
-        </svg>
-      </div>
-      <div class="serenity-logo-text">
-        <h1>Serenity</h1>
-        <span>CLIENT v1.0</span>
-      </div>
+      <h1>Serenity</h1>
+      <span>CLIENT v1.0</span>
     `;
     sidebar.appendChild(logo);
     
     const categories = manager.categories;
     
     const categoryIcons = {
-      'Visual': '<i class="fas fa-palette"></i>',
-      'Utility': '<i class="fas fa-tools"></i>',
-      'Combat': '<i class="fas fa-fist-raised"></i>',
-      'Player': '<i class="fas fa-user-astronaut"></i>',
-      'Movement': '<i class="fas fa-wind"></i>',
+      'Visual': '<i class="fas fa-eye"></i>',
+      'Utility': '<i class="fas fa-cog"></i>',
+      'Combat': '<i class="fas fa-crosshairs"></i>',
+      'Player': '<i class="fas fa-user"></i>',
+      'Movement': '<i class="fas fa-running"></i>',
     };
 
     categories.forEach(category => {
@@ -151,7 +143,7 @@ const ClickGUI = {
   
     const hudEditorBtn = document.createElement('div');
     hudEditorBtn.className = 'serenity-category serenity-hud-editor-btn';
-    hudEditorBtn.innerHTML = `<span class="serenity-category-icon"><i class="fas fa-layer-group"></i></span> HUD Editor`;
+    hudEditorBtn.innerHTML = `<i class="fas fa-edit"></i> HUD Editor`;
     hudEditorBtn.addEventListener('click', () => {
       this.isEditingHUD = true;
       this.renderHUDeditor(manager);
@@ -160,7 +152,7 @@ const ClickGUI = {
 
     const configBtn = document.createElement('div');
     configBtn.className = 'serenity-category serenity-config-btn';
-    configBtn.innerHTML = `<span class="serenity-category-icon"><i class="fas fa-cogs"></i></span> Settings`;
+    configBtn.innerHTML = `<i class="fas fa-cogs"></i> Settings`;
     configBtn.addEventListener('click', () => {
       this.activeView = 'settings';
       this.updateContent(manager);
@@ -793,7 +785,7 @@ const ClickGUI = {
     if (mod.settings.length > 0) {
       const settingsBtn = document.createElement('button');
       settingsBtn.className = 'serenity-module-settings-btn';
-      settingsBtn.innerHTML = '<i class="fas fa-sliders-h"></i>';
+      settingsBtn.innerHTML = '<i class="fas fa-cog"></i>';
       settingsBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         this.activeSettingsModule = mod;
