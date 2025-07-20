@@ -101,7 +101,7 @@ const ClickGUI = {
     logo.className = 'serenity-logo';
     logo.innerHTML = `
       <h1>Serenity</h1>
-      <span>CLIENT v1.0</span>
+      <span>CLIENT v1.1</span>
     `;
     sidebar.appendChild(logo);
     
