@@ -32,4 +32,4 @@ export function getRainbowColor(index, speed = 20) {
   const hueOffset = Date.now() / speed;
   const hue = (index * 15 + hueOffset) % 360;
   return `hsl(${hue}, 90%, 65%)`;
-} 
+}

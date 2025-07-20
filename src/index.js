@@ -1,9 +1,13 @@
-import './styles.css';
+import css from './styles.css';
 import ModuleManager from './ModuleManager';
 import PlayerTracker from './PlayerTracker';
 
 (function() {
   'use strict';
+
+  const style = document.createElement('style');
+  style.textContent = css;
+  document.head.appendChild(style);
 
   const manager = new ModuleManager();
   window.Serenity = { instance: manager };
