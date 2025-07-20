@@ -4,9 +4,10 @@ const ToggleSprint = {
     description: "Automatically sprints for you by simulating a Shift key press.",
     enabled: true,
     sprinting: false,
+    sprintInterval: null,
     element: null,
-    defaultX: 1300,
-    defaultY: 800,
+    defaultX: "80%",
+    defaultY: "80%",
 
     settings: [
         { id: "show-text", name: "Show Text", type: "boolean", value: true },
@@ -34,7 +35,7 @@ const ToggleSprint = {
 
     onTick() {
         const clickGui = window.Serenity.instance.get('ClickGUI');
-        const isTyping = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.isContentEditable);
+        const isTyping = document.activeElement && (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) || document.activeElement.isContentEditable);
         
         const shouldBeSprinting = !isTyping && (!clickGui || !clickGui.isGuiOpen);
 
@@ -42,6 +43,10 @@ const ToggleSprint = {
             this.startSprinting();
         } else if (!shouldBeSprinting && this.sprinting) {
             this.stopSprinting();
+        }
+        // If we are already sprinting ensure a fresh keydown gets fired every tick to keep some games happy
+        if (shouldBeSprinting && this.sprinting) {
+            this.fireKeyDown();
         }
         this.updateDisplay();
     },
@@ -54,13 +59,23 @@ const ToggleSprint = {
     startSprinting() {
         if (this.sprinting) return;
         this.sprinting = true;
-        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', keyCode: 16, code: 'ShiftLeft', bubbles: true }));
+        this.fireKeyDown();
+        // Backup interval just in case tick stops for a bit (e.g. tab is in background)
+        this.sprintInterval = setInterval(() => this.fireKeyDown(), 200);
     },
 
     stopSprinting() {
         if (!this.sprinting) return;
         this.sprinting = false;
+        if (this.sprintInterval) {
+            clearInterval(this.sprintInterval);
+            this.sprintInterval = null;
+        }
         window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', keyCode: 16, code: 'ShiftLeft', bubbles: true }));
+    },
+
+    fireKeyDown() {
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', keyCode: 16, code: 'ShiftLeft', bubbles: true, repeat: true }));
     },
 
     createDisplay() {
@@ -96,8 +111,8 @@ const ToggleSprint = {
             const clickGui = window.Serenity.instance.get('ClickGUI');
             if (!clickGui || !clickGui.isEditingHUD) {
                 const mod = window.Serenity.instance.get(this.name);
-                if (mod.x !== null) this.element.style.left = `${mod.x}px`;
-                if (mod.y !== null) this.element.style.top = `${mod.y}px`;
+                if (mod.x !== null) this.element.style.left = typeof mod.x === 'string' ? mod.x : `${mod.x}px`;
+                if (mod.y !== null) this.element.style.top = typeof mod.y === 'string' ? mod.y : `${mod.y}px`;
             }
         }
     },

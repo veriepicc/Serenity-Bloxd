@@ -2,7 +2,7 @@ const CPSCounter = {
   name: 'CPSCounter',
   category: 'Player',
   description: 'Displays your clicks per second.',
-  enabled: true,
+  enabled: false,
   defaultX: 724,
   defaultY: 726,
   settings: [

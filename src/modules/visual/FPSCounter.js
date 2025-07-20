@@ -2,9 +2,9 @@ const FPSCounter = {
   name: 'FPSCounter',
   category: 'Visual',
   description: 'Displays your current frames per second.',
-  enabled: true,
-  defaultX: 1443,
-  defaultY: 423,
+  enabled: false,
+  defaultX: "90%",
+  defaultY: "45%",
   settings: [
     { id: 'color-mode', name: 'Color Mode', type: 'select', options: ['Theme', 'Custom'], value: 'Theme' },
     { id: 'bg-color', name: 'Background Color', type: 'color', value: 'rgba(30, 33, 41, 0.85)', condition: s => s['color-mode'] === 'Custom' },
@@ -122,8 +122,8 @@ const FPSCounter = {
       const clickGui = window.Serenity.instance.get('ClickGUI');
       if (!clickGui || !clickGui.isEditingHUD) {
           const mod = window.Serenity.instance.get(this.name);
-          if (mod.x !== null) this.element.style.left = `${mod.x}px`;
-          if (mod.y !== null) this.element.style.top = `${mod.y}px`;
+          if (mod.x !== null) this.element.style.left = typeof mod.x === 'string' ? mod.x : `${mod.x}px`;
+          if (mod.y !== null) this.element.style.top = typeof mod.y === 'string' ? mod.y : `${mod.y}px`;
       }
       const settings = this.settings.reduce((acc, s) => ({ ...acc, [s.id]: s.value }), {});
       let text = settings.format;

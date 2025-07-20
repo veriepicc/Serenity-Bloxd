@@ -2,7 +2,7 @@ const Crosshair = {
     name: 'Crosshair',
     category: 'Visual',
     description: 'Replaces the default game crosshair with a custom one.',
-    enabled: true,
+    enabled: false,
 
     element: null,
     gameCrosshair: null,

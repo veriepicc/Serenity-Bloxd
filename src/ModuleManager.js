@@ -56,14 +56,13 @@ class ModuleManager {
       Keystrokes,
       ToggleSprint,
       ArmorHUD,
-   //   Hotbar,
-    //  Coordinates,
+      Coordinates,
       CPSCounter,
       FPSBooster,
       AdBlocker,
       Crosshair,
       Notifications,
-      ArrayList
+      ArrayList,
     ];
     
     allModules.forEach(mod => {

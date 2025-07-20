@@ -15,7 +15,7 @@ const ArrayList = {
     name: 'ArrayList',
     category: 'Visual',
     description: 'Displays a list of enabled modules.',
-    enabled: true,
+    enabled: false,
     element: null,
     
     settings: [

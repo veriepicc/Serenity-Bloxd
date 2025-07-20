@@ -938,7 +938,7 @@
   position: absolute;
   width: 350px;
   max-width: 25%;
-  z-index: 9996;
+  z-index: 1000;
   pointer-events: none;
   display: flex;
   flex-direction: column;

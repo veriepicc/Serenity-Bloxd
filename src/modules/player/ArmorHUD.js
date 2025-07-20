@@ -2,10 +2,10 @@ const ArmorHUD = {
     name: 'ArmorHUD',
     category: 'Player',
     description: 'Displays your currently equipped armor and selected item.',
-    enabled: true,
+    enabled: false,
     observer: null,
-    defaultX: 1442,
-    defaultY: 468,
+    defaultX: "90%",
+    defaultY: "50%",
     settings: [
       { id: 'color-mode', name: 'Color Mode', type: 'select', options: ['Theme', 'Custom'], value: 'Theme' },
       { id: 'show-selected', name: 'Show Selected Item', type: 'boolean', value: true },
@@ -122,8 +122,8 @@ const ArmorHUD = {
       const clickGui = window.Serenity.instance.get('ClickGUI');
       if (!clickGui || !clickGui.isEditingHUD) {
           const mod = window.Serenity.instance.get(this.name);
-          if (mod.x !== null) this.element.style.left = `${mod.x}px`;
-          if (mod.y !== null) this.element.style.top = `${mod.y}px`;
+          if (mod.x !== null) this.element.style.left = typeof mod.x === 'string' ? mod.x : `${mod.x}px`;
+          if (mod.y !== null) this.element.style.top = typeof mod.y === 'string' ? mod.y : `${mod.y}px`;
       }
   
       const armorContainer = document.querySelector('.ArmourItemSlots');
