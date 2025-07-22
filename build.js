@@ -20,6 +20,11 @@ const userscriptHeader = `
 // @description  A feature-rich client for Bloxd.io
 // @author       Serenity Development
 // @match        *://*.bloxd.io/*
+// @match        *://*.bloxdhop.io/*
+// @match        *://*.bloxdk12.com/*
+// @match        *://*.doodlecube.io/*
+// @match        *://*.eviltower.io/*
+// @match        *://1219647973806571553.discordsays.com/*
 // @downloadURL  https://raw.githubusercontent.com/veriepicc/Serenity-Bloxd/main/dist/Serenity.js
 // @updateURL    https://raw.githubusercontent.com/veriepicc/Serenity-Bloxd/main/dist/Serenity.js
 // @grant        none
