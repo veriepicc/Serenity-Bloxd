@@ -24,6 +24,14 @@ class Configuration {
       return null;
     }
   }
+
+  static reset() {
+    try {
+      localStorage.removeItem(CONFIG_KEY);
+    } catch (err) {
+      console.error('[Configuration] Error resetting config:', err);
+    }
+  }
 }
 
 export default Configuration; 

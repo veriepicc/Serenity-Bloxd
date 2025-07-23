@@ -95,6 +95,12 @@
   border-right: 1px solid var(--border);
 }
 
+.serenity-sidebar-footer {
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 1px solid var(--border);
+}
+
 .serenity-logo {
   margin-bottom: 20px;
   text-align: center;
@@ -109,6 +115,15 @@
   letter-spacing: 1.5px;
   color: var(--text);
   text-shadow: 0 0 10px var(--primary);
+  transition: transform 0.2s ease-in-out;
+}
+
+.serenity-logo a {
+    text-decoration: none;
+}
+
+.serenity-logo a:hover h1 {
+    transform: scale(1.2);
 }
 
 .serenity-logo span {
@@ -1822,4 +1837,126 @@ body.serenity-no-scroll {
     font-size: 14px;
     font-weight: 500;
     color: var(--text-secondary);
+}
+
+.serenity-waypoint-static {
+  --waypoint-color: #5E72EB;
+  position: fixed;
+  z-index: 9996;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+.waypoint-static-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--waypoint-color);
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+}
+
+.waypoint-static-text {
+  background-color: rgba(20, 22, 28, 0.7);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  margin-top: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  white-space: nowrap;
+}
+
+.waypoint-static-title {
+  display: block;
+}
+
+.waypoint-static-distance {
+  display: block;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* Waypoint Manager UI */
+.serenity-waypoint-general-settings {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.serenity-waypoint-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.serenity-waypoint-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.serenity-waypoint-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--panel);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.serenity-waypoint-color-preview {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 2px solid var(--background);
+}
+
+.serenity-waypoint-info {
+  flex-grow: 1;
+}
+
+.serenity-waypoint-info .title {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.serenity-waypoint-info .coords {
+  display: block;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.serenity-waypoint-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.serenity-waypoint-controls button {
+  background: var(--hover);
+  border: none;
+  color: var(--text-secondary);
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.serenity-waypoint-controls button:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+.coord-inputs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
 }

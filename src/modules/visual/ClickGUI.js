@@ -100,8 +100,8 @@ const ClickGUI = {
     const logo = document.createElement('div');
     logo.className = 'serenity-logo';
     logo.innerHTML = `
-      <h1>Serenity</h1>
-      <span>CLIENT v1.1</span>
+      <a href="https://discord.gg/serenityclient" target="_blank"><h1>Serenity</h1></a>
+      <span>CLIENT v1.2</span>
     `;
     sidebar.appendChild(logo);
     
@@ -144,6 +144,8 @@ const ClickGUI = {
       sidebar.appendChild(categoryBtn);
     });
 
+    const sidebarFooter = document.createElement('div');
+    sidebarFooter.className = 'serenity-sidebar-footer';
   
     const hudEditorBtn = document.createElement('div');
     hudEditorBtn.className = 'serenity-category serenity-hud-editor-btn';
@@ -152,7 +154,7 @@ const ClickGUI = {
       this.isEditingHUD = true;
       this.renderHUDeditor(manager);
     });
-    sidebar.appendChild(hudEditorBtn);
+    sidebarFooter.appendChild(hudEditorBtn);
 
     const configBtn = document.createElement('div');
     configBtn.className = 'serenity-category serenity-config-btn';
@@ -161,7 +163,9 @@ const ClickGUI = {
       this.activeView = 'settings';
       this.updateContent(manager);
     });
-    sidebar.appendChild(configBtn);
+    sidebarFooter.appendChild(configBtn);
+
+    sidebar.appendChild(sidebarFooter);
     
     return sidebar;
   },
@@ -627,6 +631,20 @@ const ClickGUI = {
     loadBtn.textContent = 'Force Load';
     loadBtn.onclick = () => manager.loadConfiguration();
     manualButtons.appendChild(loadBtn);
+
+    const resetBtn = document.createElement('button');
+    resetBtn.className = 'serenity-btn serenity-btn-danger';
+    resetBtn.textContent = 'Reset All';
+    resetBtn.onclick = () => {
+        if (confirm('Are you sure you want to reset all settings to their defaults? This action cannot be undone.')) {
+            manager.loadConfiguration({});
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+        }
+    };
+    manualButtons.appendChild(resetBtn);
+
     leftColumn.appendChild(manualButtons);
     
     configContainer.appendChild(leftColumn);
@@ -851,20 +869,170 @@ const ClickGUI = {
     const settingsContainer = document.createElement('div');
     settingsContainer.className = 'serenity-module-settings';
     
-    mod.settings.forEach(setting => {
-      const settingElement = this.createSettingElement(mod, setting, manager);
-      if (settingElement) {
-        // Handle conditional visibility
-        if (setting.condition) {
-          const isVisible = setting.condition(mod.settings.reduce((acc, s) => ({ ...acc, [s.id]: s.value }), {}));
-          settingElement.style.display = isVisible ? '' : 'none';
+    // Custom Waypoint Manager UI
+    if (mod.name === 'Waypoint') {
+      this.renderWaypointManager(settingsContainer, manager);
+    } else {
+      mod.settings.forEach(setting => {
+        const settingElement = this.createSettingElement(mod, setting, manager);
+        if (settingElement) {
+          // Handle conditional visibility
+          if (setting.condition) {
+            const isVisible = setting.condition(mod.settings.reduce((acc, s) => ({ ...acc, [s.id]: s.value }), {}));
+            settingElement.style.display = isVisible ? '' : 'none';
+          }
+          settingsContainer.appendChild(settingElement);
         }
-        settingsContainer.appendChild(settingElement);
-      }
-    });
+      });
+    }
     
     section.appendChild(settingsContainer);
     content.appendChild(section);
+  },
+
+  renderWaypointManager(container, manager) {
+    container.innerHTML = ''; // Clear existing content
+    const waypointModule = manager.get('Waypoint');
+    if (!waypointModule) return;
+    
+    const generalSettings = document.createElement('div');
+    generalSettings.className = 'serenity-waypoint-general-settings';
+    waypointModule.settings.filter(s => s.type !== 'info').forEach(setting => {
+        const settingEl = this.createSettingElement(waypointModule, setting, manager);
+        generalSettings.appendChild(settingEl);
+    });
+    container.appendChild(generalSettings);
+
+    const actions = document.createElement('div');
+    actions.className = 'serenity-waypoint-actions';
+
+    const addCurrentBtn = document.createElement('button');
+    addCurrentBtn.className = 'serenity-btn serenity-btn-primary';
+    addCurrentBtn.textContent = 'Add at Current Location';
+    addCurrentBtn.onclick = () => {
+      const pos = waypointModule.getCurrentPlayerPosition();
+      if (pos) {
+        waypointModule.addWaypoint({ ...pos });
+        this.renderWaypointManager(container, manager); // Re-render
+      } else {
+        alert('Could not get player position.');
+      }
+    };
+
+    const addManualBtn = document.createElement('button');
+    addManualBtn.className = 'serenity-btn';
+    addManualBtn.textContent = 'Create Manually';
+    addManualBtn.onclick = () => {
+      waypointModule.addWaypoint({});
+      this.renderWaypointManager(container, manager); // Re-render
+    };
+    
+    actions.appendChild(addCurrentBtn);
+    actions.appendChild(addManualBtn);
+    container.appendChild(actions);
+
+    const list = document.createElement('div');
+    list.className = 'serenity-waypoint-list';
+    waypointModule.getWaypoints().forEach(wp => {
+      const item = document.createElement('div');
+      item.className = 'serenity-waypoint-item';
+      
+      const colorPreview = document.createElement('div');
+      colorPreview.className = 'serenity-waypoint-color-preview';
+      colorPreview.style.backgroundColor = wp.color;
+
+      const info = document.createElement('div');
+      info.className = 'serenity-waypoint-info';
+      info.innerHTML = `
+        <span class="title">${wp.title}</span>
+        <span class="coords">X: ${wp.x}, Y: ${wp.y}, Z: ${wp.z}</span>
+      `;
+      
+      const controls = document.createElement('div');
+      controls.className = 'serenity-waypoint-controls';
+
+      const toggle = document.createElement('input');
+      toggle.type = 'checkbox';
+      toggle.className = 'serenity-checkbox';
+      toggle.checked = wp.enabled;
+      toggle.onchange = (e) => {
+        waypointModule.updateWaypoint(wp.id, { enabled: e.target.checked });
+      };
+
+      const editBtn = document.createElement('button');
+      editBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" fill="currentColor"><path d="M402.6 83.2l90.2 90.2c12.5 12.5 12.5 32.8 0 45.3l-283.2 283.2c-12.5 12.5-32.8 12.5-45.3 0L32.2 368.2c-12.5-12.5-12.5-32.8 0-45.3l283.2-283.2c12.5-12.5 32.8-12.5 45.3 0zm47.4 18.7c-9.2-9.2-22.9-11.9-35.8-9.8l-15.6 15.6 100.2 100.2 15.6-15.6c2.1-12.9-.6-26.6-9.8-35.8l-55.2-55.2zM384 346.7L128 480H0V352l256-256L384 346.7z"/></svg>';
+      editBtn.onclick = () => this.showWaypointEditPopup(wp, manager);
+      
+      const deleteBtn = document.createElement('button');
+      deleteBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>';
+      deleteBtn.onclick = () => {
+        if (confirm(`Are you sure you want to delete "${wp.title}"?`)) {
+          waypointModule.removeWaypoint(wp.id);
+          this.renderWaypointManager(container, manager);
+        }
+      };
+
+      controls.appendChild(toggle);
+      controls.appendChild(editBtn);
+      controls.appendChild(deleteBtn);
+
+      item.appendChild(colorPreview);
+      item.appendChild(info);
+      item.appendChild(controls);
+      list.appendChild(item);
+    });
+    container.appendChild(list);
+  },
+
+  showWaypointEditPopup(waypoint, manager) {
+      const waypointModule = manager.get('Waypoint');
+      
+      const popup = document.createElement('div');
+      popup.className = 'serenity-config-popup';
+
+      popup.innerHTML = `
+          <div class="serenity-config-popup-header">
+              <span>Edit Waypoint</span>
+          </div>
+          <div class="serenity-config-popup-body">
+              <input type="text" id="wp-title" class="serenity-text-input" placeholder="Title" value="${waypoint.title}">
+              <div class="coord-inputs">
+                  <input type="text" id="wp-x" class="serenity-text-input" placeholder="X" value="${waypoint.x}">
+                  <input type="text" id="wp-y" class="serenity-text-input" placeholder="Y" value="${waypoint.y}">
+                  <input type="text" id="wp-z" class="serenity-text-input" placeholder="Z" value="${waypoint.z}">
+              </div>
+              <input type="color" id="wp-color" value="${waypoint.color}">
+          </div>
+          <div class="serenity-config-popup-footer">
+              <button id="wp-cancel" class="serenity-btn">Cancel</button>
+              <button id="wp-save" class="serenity-btn serenity-btn-primary">Save</button>
+          </div>
+      `;
+
+      const overlay = document.createElement('div');
+      overlay.className = 'serenity-overlay visible';
+      overlay.style.zIndex = '10001';
+      document.body.appendChild(overlay);
+      document.body.appendChild(popup);
+
+      const close = () => {
+          document.body.removeChild(popup);
+          document.body.removeChild(overlay);
+          this.updateContent(manager); // Re-render the manager list
+      };
+
+      popup.querySelector('#wp-save').onclick = () => {
+          const updatedData = {
+              title: popup.querySelector('#wp-title').value,
+              x: popup.querySelector('#wp-x').value,
+              y: popup.querySelector('#wp-y').value,
+              z: popup.querySelector('#wp-z').value,
+              color: popup.querySelector('#wp-color').value,
+          };
+          waypointModule.updateWaypoint(waypoint.id, updatedData);
+          close();
+      };
+      popup.querySelector('#wp-cancel').onclick = close;
   },
 
   createSettingElement(module, setting, manager) {

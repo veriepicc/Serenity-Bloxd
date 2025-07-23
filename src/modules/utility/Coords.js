@@ -43,7 +43,26 @@ export default {
   },
 
   onTick() {
-    this.patchCanvas();
+    const canvas = document.querySelector('.CoordinateCanvas');
+
+    // If canvas is gone, cleanup.
+    if (!canvas) {
+      if (this.sourceCanvas) {
+        this.unpatchCanvas();
+        this.sourceCanvas = null;
+      }
+      return;
+    }
+
+    // If we find a new canvas, switch to it.
+    if (canvas !== this.sourceCanvas) {
+      if (this.sourceCanvas) {
+        this.unpatchCanvas();
+      }
+      this.sourceCanvas = canvas;
+      this.patchCanvas();
+    }
+    
     this.updatePosition();
   },
 
@@ -53,55 +72,60 @@ export default {
   },
 
   patchCanvas() {
-    if (this.sourceCanvas && this.sourceCanvas._serenityCoordsPatched) return;
+    if (!this.sourceCanvas || this.sourceCanvas._serenityCoordsPatched) return;
     
-    const canvas = document.querySelector('.CoordinateCanvas');
-    if (canvas) {
-      this.sourceCanvas = canvas;
-      const ctx = this.sourceCanvas.getContext('2d');
-      if (ctx.fillText._isSerenityCoordsWrapper) return;
+    const ctx = this.sourceCanvas.getContext('2d');
+    if (!ctx || ctx.fillText._isSerenityCoordsWrapper) return;
 
-      this.originalFillText = ctx.fillText;
-      const self = this;
+    this.originalFillText = ctx.fillText;
+    const self = this;
 
-      ctx.fillText = function(text, x, y, maxWidth) {
-        const now = performance.now();
-        if (now - self.lastCaptureTime > 100) {
+    ctx.fillText = function(text, x, y, maxWidth) {
+      const now = performance.now();
+      if (now - self.lastCaptureTime > 100) {
+        self.capturedTexts = [];
+      }
+      self.lastCaptureTime = now;
+
+      if (/^-?\d+\.\d{2}$/.test(text)) {
+        self.capturedTexts.push(text);
+        if (self.capturedTexts.length === 3) {
+          self.coordinates = {
+            x: self.capturedTexts[0],
+            y: self.capturedTexts[1],
+            z: self.capturedTexts[2],
+          };
+          self.updateDisplay();
           self.capturedTexts = [];
         }
-        self.lastCaptureTime = now;
+      }
+      
+      const modSettings = self.settings.reduce((acc, s) => ({ ...acc, [s.id]: s.value }), {});
+      if (modSettings['hide-original'] && /^-?\d+\.\d{2}$/.test(text)) {
+        return;
+      }
 
-        if (/^-?\d+\.\d{2}$/.test(text)) {
-          self.capturedTexts.push(text);
-          if (self.capturedTexts.length === 3) {
-            self.coordinates = {
-              x: self.capturedTexts[0],
-              y: self.capturedTexts[1],
-              z: self.capturedTexts[2],
-            };
-            self.updateDisplay();
-            self.capturedTexts = [];
-          }
-        }
-        
-        const modSettings = self.settings.reduce((acc, s) => ({ ...acc, [s.id]: s.value }), {});
-        if (modSettings['hide-original'] && /^-?\d+\.\d{2}$/.test(text)) {
-          return;
-        }
-
-        self.originalFillText.apply(this, arguments);
-      };
-      ctx.fillText._isSerenityCoordsWrapper = true;
-      this.sourceCanvas._serenityCoordsPatched = true;
-    }
+      self.originalFillText.apply(this, arguments);
+    };
+    ctx.fillText._isSerenityCoordsWrapper = true;
+    this.sourceCanvas._serenityCoordsPatched = true;
   },
 
   unpatchCanvas() {
     if (this.sourceCanvas && this.originalFillText) {
-      this.sourceCanvas.getContext('2d').fillText = this.originalFillText;
+      try {
+        const ctx = this.sourceCanvas.getContext('2d');
+        if (ctx && ctx.fillText._isSerenityCoordsWrapper) {
+          ctx.fillText = this.originalFillText;
+          delete ctx.fillText._isSerenityCoordsWrapper;
+        }
+      } catch (e) {
+        // This is expected if the canvas was destroyed
+      }
       this.originalFillText = null;
-      this.sourceCanvas._serenityCoordsPatched = false;
-      delete this.sourceCanvas.getContext('2d').fillText._isSerenityCoordsWrapper;
+      if (this.sourceCanvas) {
+        this.sourceCanvas._serenityCoordsPatched = false;
+      }
     }
   },
 

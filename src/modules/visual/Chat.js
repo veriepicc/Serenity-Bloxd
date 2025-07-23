@@ -107,10 +107,25 @@ const Chat = {
 
     handleGameChat() {
         const chatContainer = document.querySelector('.Chat');
-        if (!chatContainer) return;
-        
-        if (!this.gameChat) {
+
+        if (!chatContainer) {
+            if (this.chatObserver) {
+                this.chatObserver.disconnect();
+                this.chatObserver = null;
+            }
+            this.gameChat = null;
+            return;
+        }
+
+        if (this.gameChat !== chatContainer) {
+            if (this.chatObserver) {
+                this.chatObserver.disconnect();
+                this.chatObserver = null;
+            }
             this.gameChat = chatContainer;
+            if (this.element) {
+                this.element.querySelector('.serenity-chat-messages').innerHTML = '';
+            }
         }
 
         const shouldHide = this.settings.find(s => s.id === 'hide-game-chat').value;

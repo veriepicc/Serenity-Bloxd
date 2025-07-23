@@ -8,6 +8,7 @@ import ArmorHUD from './modules/player/ArmorHUD';
 import Hotbar from './modules/player/Hotbar';
 import Coordinates from './modules/utility/Coords';
 import CPSCounter from './modules/player/CPSCounter';
+import PingCounter from './modules/player/PingCounter';
 import FPSBooster from './modules/utility/FPSBooster';
 import AdBlocker from './modules/utility/AdBlocker';
 import Configuration from './Configuration';
@@ -15,6 +16,7 @@ import Crosshair from './modules/visual/Crosshair'
 import NotificationManager from './NotificationManager';
 import Notifications from './modules/utility/Notifications';
 import ArrayList from './modules/visual/ArrayList';
+import Waypoint from './modules/utility/Waypoint';
 
 class ModuleManager {
   constructor({ tickRate = 60 } = {}) {
@@ -29,7 +31,6 @@ class ModuleManager {
     this.hudVisibilityInterval = null;
     this.notifications = new NotificationManager();
     
-    this.tickInterval = 1000 / tickRate;
     this.lastTick = performance.now();
     this.ticker = this.ticker.bind(this);
     
@@ -63,6 +64,8 @@ class ModuleManager {
       Crosshair,
       Notifications,
       ArrayList,
+      PingCounter,
+      Waypoint
     ];
     
     allModules.forEach(mod => {
@@ -197,14 +200,12 @@ class ModuleManager {
 
   ticker(now) {
     const dt = now - this.lastTick;
-    if (dt >= this.tickInterval) {
-      this.modules.forEach((m) => {
-        if (m.enabled && typeof m.onTick === 'function') {
-          try { m.onTick(dt, this); } catch (err) { console.error(`[ModuleManager] onTick error in "${m.name}":`, err); }
-        }
-      });
-      this.lastTick = now;
-    }
+    this.modules.forEach((m) => {
+      if (m.enabled && typeof m.onTick === 'function') {
+        try { m.onTick(dt, this); } catch (err) { console.error(`[ModuleManager] onTick error in "${m.name}":`, err); }
+      }
+    });
+    this.lastTick = now;
     requestAnimationFrame(this.ticker);
   }
 
@@ -232,6 +233,9 @@ class ModuleManager {
         y: mod.y,
         settings: mod.settings.map(s => ({ id: s.id, value: s.value }))
       };
+      if (name === 'Waypoint') {
+        config[name].waypoints = mod.getWaypoints();
+      }
     }
     Configuration.save(config);
   }
@@ -284,6 +288,9 @@ class ModuleManager {
         } else if (!modConfig.enabled && mod.enabled) {
           this.disable(name);
         }
+      }
+      if (name === 'Waypoint' && modConfig.waypoints) {
+          mod.loadWaypoints(modConfig.waypoints);
       }
     }
 
