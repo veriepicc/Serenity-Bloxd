@@ -22,17 +22,30 @@ const WaypointManager = {
   },
 
   onDisable() {
-    if (this.deathMarkerObserver) this.deathMarkerObserver.disconnect();
-    this.waypointElements.forEach(element => element.remove());
-    this.waypointElements.clear();
+    this.destroyDisplay();
     this.camera = null;
     this.entities = null;
   },
   
   onTick() {
+    // Heavy logic on a throttled tick
     if (!this.camera || !this.entities) {
         this.findGameData();
     }
+  },
+
+  onFrame() {
+    const inGame = document.querySelector('.HotBarGameItemsContainer');
+    const onRotateScreen = document.querySelector('.ForceRotateBackground');
+
+    if (!inGame || onRotateScreen) {
+        this.waypointElements.forEach(element => {
+            if (element) element.style.display = 'none';
+        });
+        return;
+    }
+
+    // Smooth visual updates every frame
     this.waypoints.forEach(wp => this.updateWaypointPosition(wp));
   },
 

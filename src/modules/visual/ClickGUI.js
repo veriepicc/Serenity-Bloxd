@@ -33,6 +33,7 @@ const ClickGUI = {
     }
     
     this.createGUI(manager);
+    this.updateContent(manager);
     setTimeout(() => {
       if (this.overlay) this.overlay.classList.add('visible');
       if (this.element) this.element.classList.add('visible');
@@ -428,6 +429,7 @@ const ClickGUI = {
     tabs.innerHTML = `
         <button class="serenity-config-tab active" data-tab="Themes">Themes</button>
         <button class="serenity-config-tab" data-tab="Config">Config</button>
+        <button class="serenity-config-tab" data-tab="Keybinds">Keybinds</button>
         <button class="serenity-config-tab" data-tab="Scripting">Scripting</button>
     `;
     settingsContainer.appendChild(tabs);
@@ -461,6 +463,9 @@ const ClickGUI = {
             break;
         case 'Config':
             this.renderConfigSubContent(content, manager);
+            break;
+        case 'Keybinds':
+            this.renderKeybindsContent(content, manager);
             break;
         case 'Scripting':
             this.renderScriptingContent(content, manager);
@@ -569,6 +574,63 @@ const ClickGUI = {
 
     themeContainer.appendChild(themesGrid);
     content.appendChild(themeContainer);
+  },
+
+  renderKeybindsContent(content, manager) {
+    content.innerHTML = ''; // Clear previous content
+    const keybindManager = manager.keybindManager;
+    const keybindContainer = document.createElement('div');
+    keybindContainer.className = 'serenity-keybind-editor';
+
+    const header = this.createSectionHeader('Module Keybinds', 'Click a key to set a new bind. Press ESC to cancel, or Backspace/Delete to unbind.');
+    keybindContainer.appendChild(header);
+
+    const keybindList = document.createElement('div');
+    keybindList.className = 'serenity-keybind-list';
+
+    const modules = manager.list()
+      .filter(m => m.name !== 'ClickGUI')
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    modules.forEach(mod => {
+        const item = document.createElement('div');
+        item.className = 'serenity-keybind-item';
+
+        const nameLabel = document.createElement('span');
+        nameLabel.className = 'serenity-keybind-name';
+        nameLabel.textContent = mod.name;
+
+        const keyButton = document.createElement('button');
+        keyButton.className = 'serenity-keybind-button';
+        const currentBind = keybindManager.getBind(mod.name);
+        keyButton.textContent = currentBind ? this.formatKeyCode(currentBind) : 'None';
+
+        keyButton.onclick = () => {
+            document.querySelectorAll('.serenity-keybind-button').forEach(btn => btn.disabled = true);
+            
+            keyButton.textContent = '[...]';
+            keyButton.classList.add('binding');
+            keyButton.disabled = false;
+
+            keybindManager.startBinding(mod.name, () => {
+                this.renderKeybindsContent(content, manager);
+            });
+        };
+
+        item.appendChild(nameLabel);
+        item.appendChild(keyButton);
+        keybindList.appendChild(item);
+    });
+
+    keybindContainer.appendChild(keybindList);
+    content.appendChild(keybindContainer);
+  },
+
+  formatKeyCode(code) {
+    if (code.startsWith('Key')) return code.substring(3);
+    if (code.startsWith('Digit')) return code.substring(5);
+    if (code.startsWith('Numpad')) return `Num ${code.substring(6)}`;
+    return code;
   },
 
   createSectionHeader(title, subtitle) {

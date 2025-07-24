@@ -1054,7 +1054,7 @@ body.serenity-no-scroll {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  z-index: 9997;
+  z-index: 5;
   pointer-events: none;
   user-select: none;
 }
@@ -1959,4 +1959,60 @@ body.serenity-no-scroll {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
+}
+
+/* Keybind Editor Styles */
+.serenity-keybind-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    /* Allow the container to shrink and enable scrolling on its child */
+    height: 100%;
+    min-height: 0;
+}
+
+.serenity-keybind-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    overflow-y: auto;
+    padding-right: 10px; /* Space for scrollbar */
+}
+
+.serenity-keybind-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--panel);
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.serenity-keybind-name {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.serenity-keybind-button {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: 6px;
+    min-width: 60px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.serenity-keybind-button:hover {
+    background-color: var(--hover);
+    color: var(--text);
+}
+
+.serenity-keybind-button.binding {
+    background-color: var(--primary);
+    color: #fff;
+    border-color: var(--primary-dark);
 }

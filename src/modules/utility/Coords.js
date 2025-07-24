@@ -43,6 +43,7 @@ export default {
   },
 
   onTick() {
+    // Heavy logic on a throttled tick
     const canvas = document.querySelector('.CoordinateCanvas');
 
     // If canvas is gone, cleanup.
@@ -62,7 +63,10 @@ export default {
       this.sourceCanvas = canvas;
       this.patchCanvas();
     }
-    
+  },
+
+  onFrame() {
+    // Smooth visual updates every frame
     this.updatePosition();
   },
 
@@ -160,7 +164,7 @@ export default {
     const settings = this.settings.reduce((acc, s) => ({ ...acc, [s.id]: s.value }), {});
     
     this.element.style.position = 'absolute';
-    this.element.style.zIndex = 9997;
+    this.element.style.zIndex = 5;
     this.element.style.pointerEvents = 'none';
     this.element.style.userSelect = 'none';
 

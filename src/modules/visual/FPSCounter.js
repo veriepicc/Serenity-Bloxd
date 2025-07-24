@@ -154,7 +154,7 @@ const FPSCounter = {
     this.element.style.borderRadius = `${settings['border-radius']}px`;
     this.element.style.position = 'absolute';
     this.element.style.userSelect = 'none';
-    this.element.style.zIndex = 9997;
+    this.element.style.zIndex = 5;
     this.element.style.pointerEvents = 'none';
   }
 };

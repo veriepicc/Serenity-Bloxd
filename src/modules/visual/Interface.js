@@ -171,7 +171,7 @@ const Interface = {
 
         const clickGui = window.Serenity.instance.get('ClickGUI');
         if (!clickGui || !clickGui.isEditingHUD) {
-            this.element.style.zIndex = 9997;
+            this.element.style.zIndex = 5;
         }
     }
 };

@@ -36,6 +36,10 @@ const Chat = {
     },
 
     onTick() {
+        this.handleGameChat();
+    },
+
+    onFrame() {
         if (this.element) {
             const clickGui = window.Serenity.instance.get('ClickGUI');
             if (!clickGui || !clickGui.isEditingHUD) {
@@ -54,6 +58,7 @@ const Chat = {
     createDisplay() {
         this.element = document.createElement('div');
         this.element.className = 'serenity-chat-container';
+        this.element.style.zIndex = 5;
         document.body.appendChild(this.element);
 
         const messagesContainer = document.createElement('div');

@@ -17,9 +17,10 @@ import NotificationManager from './NotificationManager';
 import Notifications from './modules/utility/Notifications';
 import ArrayList from './modules/visual/ArrayList';
 import Waypoint from './modules/utility/Waypoint';
+import KeybindManager from './KeybindManager';
 
 class ModuleManager {
-  constructor({ tickRate = 60 } = {}) {
+  constructor({ tickRate = 30 } = {}) {
     this.modules = new Map();
     this.moduleDefs = new Map();
     this.categories = [
@@ -30,7 +31,9 @@ class ModuleManager {
     this.initialized = false;
     this.hudVisibilityInterval = null;
     this.notifications = new NotificationManager();
+    this.keybindManager = new KeybindManager(this);
     
+    this.tickInterval = 1000 / tickRate;
     this.lastTick = performance.now();
     this.ticker = this.ticker.bind(this);
     
@@ -46,6 +49,7 @@ class ModuleManager {
     }
     this.applyInitialStates();
     this.initialized = true;
+    this.keybindManager.start();
   }
 
   init() {
@@ -200,12 +204,24 @@ class ModuleManager {
 
   ticker(now) {
     const dt = now - this.lastTick;
+
+    // High-frequency, runs every frame for smooth visuals
     this.modules.forEach((m) => {
-      if (m.enabled && typeof m.onTick === 'function') {
-        try { m.onTick(dt, this); } catch (err) { console.error(`[ModuleManager] onTick error in "${m.name}":`, err); }
+      if (m.enabled && typeof m.onFrame === 'function') {
+        try { m.onFrame(dt, this); } catch (err) { console.error(`[ModuleManager] onFrame error in "${m.name}":`, err); }
       }
     });
-    this.lastTick = now;
+
+    // Low-frequency, runs on a fixed tick for heavy logic
+    if (dt >= this.tickInterval) {
+      this.modules.forEach((m) => {
+        if (m.enabled && typeof m.onTick === 'function') {
+          try { m.onTick(dt, this); } catch (err) { console.error(`[ModuleManager] onTick error in "${m.name}":`, err); }
+        }
+      });
+      this.lastTick = now - (dt % this.tickInterval);
+    }
+    
     requestAnimationFrame(this.ticker);
   }
 
@@ -237,6 +253,7 @@ class ModuleManager {
         config[name].waypoints = mod.getWaypoints();
       }
     }
+    config.meta.keybinds = this.keybindManager.getBinds();
     Configuration.save(config);
   }
 
@@ -256,6 +273,9 @@ class ModuleManager {
       }
       if (config.meta.theme && config.meta.theme.panelOpacity) {
         document.documentElement.style.setProperty('--panel-opacity', config.meta.theme.panelOpacity);
+      }
+      if (config.meta.keybinds) {
+          this.keybindManager.loadBinds(config.meta.keybinds);
       }
     }
 
