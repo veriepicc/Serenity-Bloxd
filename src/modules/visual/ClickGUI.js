@@ -934,6 +934,8 @@ const ClickGUI = {
     // Custom Waypoint Manager UI
     if (mod.name === 'Waypoint') {
       this.renderWaypointManager(settingsContainer, manager);
+    } else if (mod.name === 'Nametags') {
+      mod.renderNametagManager(settingsContainer, manager);
     } else {
       mod.settings.forEach(setting => {
         const settingElement = this.createSettingElement(mod, setting, manager);

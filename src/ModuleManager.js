@@ -18,6 +18,7 @@ import Notifications from './modules/utility/Notifications';
 import ArrayList from './modules/visual/ArrayList';
 import Waypoint from './modules/utility/Waypoint';
 import KeybindManager from './KeybindManager';
+import Nametags from './modules/player/Nametags';
 
 class ModuleManager {
   constructor({ tickRate = 30 } = {}) {
@@ -69,7 +70,8 @@ class ModuleManager {
       Notifications,
       ArrayList,
       PingCounter,
-      Waypoint
+      Waypoint,
+      Nametags
     ];
     
     allModules.forEach(mod => {
