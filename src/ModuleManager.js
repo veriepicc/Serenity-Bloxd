@@ -1,12 +1,9 @@
 import ClickGUI from './modules/visual/ClickGUI';
-import FPSCounter from './modules/visual/FPSCounter';
-import Interface from './modules/visual/Interface';
 import Chat from './modules/visual/Chat';
 import Keystrokes from './modules/combat/Keystrokes';
 import ToggleSprint from './modules/movement/ToggleSprint';;
 import ArmorHUD from './modules/player/ArmorHUD';
 import Hotbar from './modules/player/Hotbar';
-import Coordinates from './modules/utility/Coords';
 import CPSCounter from './modules/player/CPSCounter';
 import PingCounter from './modules/player/PingCounter';
 import FPSBooster from './modules/utility/FPSBooster';
@@ -19,6 +16,8 @@ import ArrayList from './modules/visual/ArrayList';
 import Waypoint from './modules/utility/Waypoint';
 import KeybindManager from './KeybindManager';
 import Nametags from './modules/player/Nametags';
+
+
 
 class ModuleManager {
   constructor({ tickRate = 30 } = {}) {
@@ -56,13 +55,10 @@ class ModuleManager {
   init() {
     const allModules = [
       ClickGUI,
-      FPSCounter,
-      Interface,
       Chat,
       Keystrokes,
       ToggleSprint,
       ArmorHUD,
-      Coordinates,
       CPSCounter,
       FPSBooster,
       AdBlocker,
