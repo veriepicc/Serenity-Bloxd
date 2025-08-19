@@ -1,13 +1,12 @@
-import { getPlayerName } from '../../utils.js';
-
 const Nametags = {
   name: 'Nametags',
   category: 'Player',
   description: 'Get custom nametags that everyone can see.',
   enabled: false,
   settings: [
-    { id: 'NametagUsername', name: 'Detected Username', type: 'info', description: 'Your username is automatically detected from the game.', value: 'unknown' },
-    { id: 'NametagImg', name: 'Nametag Image', type: 'select',
+    { id: 'NametagUsername', name: 'Nametag Username', type: 'text', value: 'unknown' },
+    {
+      id: 'NametagImg', name: 'Nametag Image', type: 'select', value: 'None',
       options: [
         'None',
         'https://i.postimg.cc/NMG91FWH/space-BG-loco.jpg',
@@ -19,8 +18,7 @@ const Nametags = {
         'https://i.postimg.cc/1RfHnC6F/2023-12-19-11-14-34.png',
         'https://i.postimg.cc/ZKNxjWwK/6843ea27816c80d1186125192cbf582ece88036e-2-690x326.jpg',
         'https://i.postimg.cc/GhjHcr2x/swirling-clouds-create-captivating-natural-vortex-sky-138943-2179.avif'
-      ],
-      value: 'None'
+      ]
     },
     { id: "mod-credit", name: "Mod Made By: GEORGECR", type: "info" }
   ],
@@ -29,20 +27,19 @@ const Nametags = {
   firebaseLoaded: false,
   unsub: null,
   defaultImage: 'https://i.postimg.cc/PJ46tnhC/deafultanmetagiamge.png',
-  manager: null,
 
   onEnable(manager) {
     this.manager = manager;
     this.loadFirebase(() => {
       this.listenForUpdates();
       this.hookCanvas();
+      this.setupUsernameSync();
       this.uploadIfValid();
     });
   },
 
   onDisable() {
     if (this.unsub) this.unsub();
-
     Object.keys(this.patterns).forEach(name => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
@@ -51,34 +48,12 @@ const Nametags = {
     });
   },
 
-  onTick() {
-    if (!this.manager) return;
-
-    const usernameSetting = this.settings.find(s => s.id === 'NametagUsername');
-    if (!usernameSetting) return;
-
-    const detectedUsername = getPlayerName();
-    if (detectedUsername && detectedUsername !== 'unknown' && detectedUsername !== usernameSetting.value) {
-        usernameSetting.value = detectedUsername;
-        
-        const clickGui = this.manager.get('ClickGUI');
-        if (clickGui && clickGui.isGuiOpen && clickGui.activeSettingsModule?.name === this.name) {
-            const usernameSpan = clickGui.element.querySelector('.serenity-nametag-username-value');
-            if (usernameSpan) {
-                usernameSpan.textContent = detectedUsername;
-            }
-        }
-    }
-
-    this.uploadIfValid();
-  },
-
   onSettingUpdate(id, value, manager) {
     if (id === 'NametagImg') {
       const existingNotif = Array.from(document.querySelectorAll('.serenity-notification-title'))
         .find(el => el.textContent === 'Nametag Updated');
 
-      if (!existingNotif) {
+      if (!existingNotif && manager?.notifications) {
         manager.notifications.show({
           title: 'Nametag Updated',
           message: 'Rejoin the game for your new nametag to apply.',
@@ -93,33 +68,51 @@ const Nametags = {
     return this.settings.find(s => s.id === id)?.value;
   },
 
+  updateSetting(id, newValue) {
+    const setting = this.settings.find(s => s.id === id);
+    if (setting && setting.value !== newValue) {
+      setting.value = newValue;
+      this.uploadIfValid();
+    }
+  },
+
   uploadIfValid() {
     const name = this.getSetting('NametagUsername');
     let imgUrl = this.getSetting('NametagImg');
-    if (imgUrl === 'None') {
-      imgUrl = this.defaultImage;
-    }
+    if (imgUrl === 'None') imgUrl = this.defaultImage;
 
-    if (name && name !== 'unknown' && imgUrl) {
-      // Update Firestore
+    if (name && imgUrl) {
       firebase.firestore().collection("nametags").doc(name).set({ name, imgUrl });
 
-      // Update local pattern for snappy feedback
       const existingEntry = this.patterns[name];
       if (existingEntry) {
-        // If the URL has changed, update the src and invalidate the pattern
         if (existingEntry.img.src !== imgUrl) {
           existingEntry.img.src = imgUrl;
           existingEntry.pattern = null;
         }
       } else {
-        // If no entry, create a new one
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.src = imgUrl;
         this.patterns[name] = { img, pattern: null };
       }
     }
+  },
+
+  setupUsernameSync() {
+    setInterval(() => {
+      const el = document.querySelector('.TextFromServerEntityName');
+      if (el) {
+        const text = el.textContent.trim();
+        const setting = this.settings.find(s => s.id === 'NametagUsername');
+        if (text && setting && text !== setting.value) {
+          setting.value = text;
+          this.uploadIfValid();
+          const usernameSpan = document.querySelector('.serenity-nametag-username-value');
+          if (usernameSpan) usernameSpan.textContent = text;
+        }
+      }
+    }, 500);
   },
 
   loadFirebase(callback) {
@@ -138,12 +131,12 @@ const Nametags = {
         loaded++;
         if (loaded === urls.length) {
           firebase.initializeApp({
-            apiKey: "AIzaSyC8fNkY7a683r4U92LCYT9df-ItME7hktQ",
-            authDomain: "vortex-testing.firebaseapp.com",
-            projectId: "vortex-testing",
-            storageBucket: "vortex-testing.firebasestorage.app",
-            messagingSenderId: "927553766007",
-            appId: "1:927553766007:web:55031fe62ea98d4f1afc72"
+            apiKey: "AIzaSyCUnDj5OcI63iOyL3UzcxrXixbsjTIuzPA",
+            authDomain: "vortex-client-db.firebaseapp.com",
+            projectId: "vortex-client-db",
+            storageBucket: "vortex-client-db.firebasestorage.app",
+            messagingSenderId: "502851495964",
+            appId: "1:502851495964:web:a1c7fc30c48c9901ce17d9"
           });
           this.firebaseLoaded = true;
           callback();
@@ -213,56 +206,49 @@ const Nametags = {
           background-color: var(--panel-base);
           font-weight: 600;
         }
-      </style>
-    `;
+      </style>`
+    ;
 
-    // Manually render the username display so it's read-only
     const usernameSetting = this.settings.find(s => s.id === 'NametagUsername');
     const usernameDisplay = document.createElement('div');
     usernameDisplay.className = 'serenity-setting';
     usernameDisplay.innerHTML = `
       <div class="serenity-setting-info">
         <label class="serenity-setting-label">${usernameSetting.name}</label>
-        <p class="serenity-setting-description">${usernameSetting.description}</p>
+        <p class="serenity-setting-description">Detected from game.</p>
       </div>
       <div class="serenity-setting-control" style="text-align: right; font-weight: 600;">
-        <span class="serenity-nametag-username-value">${this.getSetting('NametagUsername') || 'unknown'}</span>
-      </div>
-    `;
+        <span class="serenity-nametag-username-value">${usernameSetting.value}</span>
+      </div>`
+    ;
     container.appendChild(usernameDisplay);
-      
-    // Add a header for the grid
+
     const gridHeader = document.createElement('div');
     gridHeader.className = 'serenity-nametag-subheader';
     gridHeader.style.marginTop = '20px';
-    gridHeader.innerHTML = `<div class="serenity-nametag-subheader-title">Select Nametag Image</div>`;
+    gridHeader.innerHTML = '<div class="serenity-nametag-subheader-title">Select Nametag Image</div>';
     container.appendChild(gridHeader);
 
     const grid = document.createElement('div');
     grid.className = 'serenity-nametag-grid';
-    
+
     const imageOptions = this.settings.find(s => s.id === 'NametagImg').options;
     const currentImage = this.getSetting('NametagImg');
 
     imageOptions.forEach(url => {
       const card = document.createElement('div');
       card.className = 'serenity-nametag-card';
-      if (url === currentImage) {
-        card.classList.add('selected');
-      }
+      if (url === currentImage) card.classList.add('selected');
 
-      if (url === 'None') {
-        card.innerHTML = `<div class="none-card">None</div>`;
-      } else {
-        card.innerHTML = `<img src="${url}" />`;
-      }
-      
+      card.innerHTML = url === 'None'
+      ? '<div class="none-card">None</div>'
+      : `<img src="${url}" />`;
+    
+
       card.addEventListener('click', () => {
         manager.updateModuleSetting(this.name, 'NametagImg', url);
-        const currentlySelected = container.querySelector('.serenity-nametag-card.selected');
-        if (currentlySelected) {
-            currentlySelected.classList.remove('selected');
-        }
+        const selected = container.querySelector('.serenity-nametag-card.selected');
+        if (selected) selected.classList.remove('selected');
         card.classList.add('selected');
       });
 
@@ -273,13 +259,13 @@ const Nametags = {
 
     const creditSetting = this.settings.find(s => s.id === 'mod-credit');
     if (creditSetting) {
-        const creditDisplay = document.createElement('div');
-        creditDisplay.style.textAlign = 'center';
-        creditDisplay.style.marginTop = '25px';
-        creditDisplay.style.color = 'var(--text-secondary)';
-        creditDisplay.style.fontSize = '12px';
-        creditDisplay.textContent = creditSetting.name;
-        container.appendChild(creditDisplay);
+      const creditDisplay = document.createElement('div');
+      creditDisplay.style.textAlign = 'center';
+      creditDisplay.style.marginTop = '25px';
+      creditDisplay.style.color = 'var(--text-secondary)';
+      creditDisplay.style.fontSize = '12px';
+      creditDisplay.textContent = creditSetting.name;
+      container.appendChild(creditDisplay);
     }
   },
 
@@ -341,4 +327,4 @@ const Nametags = {
   }
 };
 
-export default Nametags; 
+export default Nametags;
