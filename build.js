@@ -19,6 +19,7 @@ const userscriptHeader = `
 // @version      ${packageJson.version}
 // @description  A feature-rich client for Bloxd.io
 // @author       Serenity Development
+// @icon         https://i.postimg.cc/kXhHTk5q/lol3.jpg
 // @match        *://*.bloxd.io/*
 // @match        *://*.bloxdhop.io/*
 // @match        *://*.bloxdk12.com/*
