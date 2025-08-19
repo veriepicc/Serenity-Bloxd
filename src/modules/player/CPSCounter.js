@@ -2,65 +2,48 @@ const CPSCounter = {
   name: 'CPSCounter',
   category: 'Player',
   description: 'Displays your clicks per second.',
-  enabled: false,
-  defaultX: 724,
-  defaultY: 726,
+  enabled: true,
   settings: [
-    { id: 'color-mode', name: 'Color Mode', type: 'select', options: ['Theme', 'Custom'], value: 'Theme' },
-    { id: 'bg-color', name: 'Background Color', type: 'color', value: 'rgba(30, 33, 41, 0.85)', condition: s => s['color-mode'] === 'Custom' },
-    { id: 'text-color', name: 'Text Color', type: 'color', value: '#EAEAEA', condition: s => s['color-mode'] === 'Custom' },
-    { id: 'font-size', name: 'Font Size', type: 'slider', value: 14, min: 8, max: 24, step: 1 },
-    { id: 'padding', name: 'Padding', type: 'slider', value: 8, min: 0, max: 20, step: 1 },
-    { id: 'border-radius', name: 'Border Radius', type: 'slider', value: 10, min: 0, max: 20, step: 1 },
-    { id: 'border-width', name: 'Border Width', type: 'slider', value: 1, min: 0, max: 5, step: 1 },
-    { id: 'border-color', name: 'Border Color', type: 'color', value: 'rgba(255, 255, 255, 0.07)', condition: s => s['color-mode'] === 'Custom' },
+    { id: 'text-color', name: 'Text Color', type: 'color', value: '#EAEAEA' },
     { id: 'show-label', name: 'Show Label', type: 'boolean', value: true },
     { id: 'show-lmb', name: 'Show LMB', type: 'boolean', value: true },
     { id: 'show-rmb', name: 'Show RMB', type: 'boolean', value: true },
-    {
-      id: 'format',
-      name: 'Text Format',
-      type: 'text',
-      value: '{label} {lmb} | {rmb}',
-      description: 'Use {label}, {lmb}, and {rmb} as placeholders.',
-    },
+    { id: 'format', name: 'Text Format', type: 'text', value: '{label} {lmb} | {rmb}' },
   ],
-  
+
   leftClicks: [],
   rightClicks: [],
-  
   element: null,
+  positionInterval: null,
 
   onEnable() {
     this.createDisplay();
     this.applyStyles();
+    this.startPositioning();
     document.addEventListener('mousedown', this.handleMouseDown.bind(this));
   },
 
   onDisable() {
     this.destroyDisplay();
     document.removeEventListener('mousedown', this.handleMouseDown.bind(this));
+    if (this.positionInterval) clearInterval(this.positionInterval);
   },
 
   onTick() {
     const now = performance.now();
     this.leftClicks = this.leftClicks.filter(t => now - t < 1000);
     this.rightClicks = this.rightClicks.filter(t => now - t < 1000);
-    
     this.updateDisplay();
   },
-  
+
   onSettingUpdate() {
     this.applyStyles();
     this.updateDisplay();
   },
 
   handleMouseDown(e) {
-    if (e.button === 0) { // Left click
-      this.leftClicks.push(performance.now());
-    } else if (e.button === 2) { // Right click
-      this.rightClicks.push(performance.now());
-    }
+    if (e.button === 0) this.leftClicks.push(performance.now());
+    else if (e.button === 2) this.rightClicks.push(performance.now());
   },
 
   createDisplay() {
@@ -75,59 +58,64 @@ const CPSCounter = {
       this.element = null;
     }
   },
-
   updateDisplay() {
-    if (this.element) {
-      const clickGui = window.Serenity.instance.get('ClickGUI');
-      if (!clickGui || !clickGui.isEditingHUD) {
-        const mod = window.Serenity.instance.get(this.name);
-        if (mod.x !== null) this.element.style.left = `${mod.x}px`;
-        if (mod.y !== null) this.element.style.top = `${mod.y}px`;
+    if (!this.element) return;
+    const settings = this.settings.reduce((acc, s) => ({ ...acc, [s.id]: s.value }), {});
+    let text = settings.format;
+  
+    text = text.replace('{label}', settings['show-label'] ? 'CPS:' : '');
+    text = text.replace('{lmb}', settings['show-lmb'] ? this.leftClicks.length : '0');
+    text = text.replace('{rmb}', settings['show-rmb'] ? this.rightClicks.length : '0');
+
+    this.element.textContent = text.trim();
+  },
+  
+
+  startPositioning() {
+    this.positionInterval = setInterval(() => {
+      if (!this.element) return;
+
+      const fps = document.querySelector('.FpsWrapperDiv');
+      const coords = document.querySelectorAll('.CoordinateUI');
+      const header = document.querySelector('.InGameHeader');
+      if (!header) return;
+
+      const fpsVisible = fps && window.getComputedStyle(fps).display !== 'none';
+      const visibleCoords = Array.from(coords).filter(c => window.getComputedStyle(c).display !== 'none');
+
+      let targetRect = null;
+      if (visibleCoords.length > 0) {
+        targetRect = visibleCoords.reduce((rightMost, c) => {
+          const rect = c.getBoundingClientRect();
+          return !rightMost || rect.right > rightMost.right ? rect : rightMost;
+        }, null);
+      } else if (fpsVisible) {
+        targetRect = fps.getBoundingClientRect();
+      } else {
+        targetRect = header.getBoundingClientRect();
       }
 
-      const settings = this.settings.reduce((acc, s) => ({ ...acc, [s.id]: s.value }), {});
-      let text = settings.format;
-
-      if (settings['show-label']) text = text.replace('{label}', 'CPS:'); else text = text.replace('{label}', '');
-      if (settings['show-lmb']) text = text.replace('{lmb}', this.leftClicks.length); else text = text.replace('{lmb}', '');
-      if (settings['show-rmb']) text = text.replace('{rmb}', this.rightClicks.length); else text = text.replace('{rmb}', '');
-      
-      this.element.textContent = text.trim().replace(/\|/g, (match, offset, str) => {
-        const prevChar = str[offset - 1];
-        const nextChar = str[offset + 1];
-        if (prevChar && prevChar.trim() === '' && nextChar && nextChar.trim() === '') {
-          return '|';
-        }
-        if (!prevChar || prevChar.trim() === '' || !nextChar || nextChar.trim() === '') {
-          return '';
-        }
-        return match;
-      }).trim();
-    }
+      if (targetRect) {
+        this.element.style.top = `${targetRect.top + window.scrollY}px`;
+        this.element.style.left = `${targetRect.right + window.scrollX + 5}px`;
+        this.element.style.display = 'block';
+      }
+    }, 200);
   },
 
   applyStyles() {
     if (!this.element) return;
     const settings = this.settings.reduce((acc, s) => ({ ...acc, [s.id]: s.value }), {});
-    
-    if (settings['color-mode'] === 'Theme') {
-        this.element.style.backgroundColor = 'var(--panel)';
-        this.element.style.color = 'var(--text)';
-        this.element.style.border = `${settings['border-width']}px solid var(--border)`;
-    } else {
-        this.element.style.backgroundColor = settings['bg-color'];
-        this.element.style.color = settings['text-color'];
-        this.element.style.border = `${settings['border-width']}px solid ${settings['border-color']}`;
-    }
-    
-    this.element.style.fontSize = `${settings['font-size']}px`;
-    this.element.style.padding = `${settings['padding']}px`;
-    this.element.style.borderRadius = `${settings['border-radius']}px`;
+    this.element.style.color = settings['text-color'];
+    this.element.style.fontSize = '14px';
     this.element.style.position = 'absolute';
     this.element.style.userSelect = 'none';
     this.element.style.zIndex = 5;
     this.element.style.pointerEvents = 'none';
+    this.element.style.backgroundColor = 'rgba(30, 33, 41, var(--panel-opacity))';
+    this.element.style.padding = '16.5px 10px 16.5px 10px';
+    this.element.style.borderRadius = '10px';
   }
 };
 
-export default CPSCounter; 
+export default CPSCounter;
